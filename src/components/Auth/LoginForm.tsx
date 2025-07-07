@@ -120,7 +120,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
                 className="text-sm text-teal-600 hover:text-teal-500"
               >
                 Don't have an account? Register
-            </a>
+              </button>
+            </div>
           </div>
         </form>
 
