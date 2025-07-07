@@ -5,7 +5,6 @@ import {
   UserCheck,
   MapPin, 
   BookOpen, 
-  UserCheck, 
   CreditCard, 
   FileText, 
   MessageSquare, 
