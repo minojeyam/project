@@ -1,7 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
-import { approveUser, rejectUser } from '../controllers/userController.js';
 import { auth, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -115,11 +114,81 @@ router.get('/:id', auth, async (req, res) => {
 // @route   PUT /api/users/:id/approve
 // @desc    Approve pending user (admin only)
 // @access  Private (Admin)
-router.put('/:id/approve', auth, authorize(['admin']), approveUser);
+router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    if (user.status !== 'pending') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'User is not in pending status'
+      });
+    }
+
+    user.status = 'active';
+    await user.save();
+
+    res.json({
+      status: 'success',
+      message: 'User approved successfully',
+      data: {
+        user
+      }
+    });
+
+  } catch (error) {
+    console.error('Approve user error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+});
 
 // @route   PUT /api/users/:id/reject
 // @desc    Reject pending user (admin only)
 // @access  Private (Admin)
+router.put('/:id/reject', auth, authorize(['admin']), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    if (user.status !== 'pending') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'User is not in pending status'
+      });
+    }
+
+    // Delete the user instead of just changing status
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      status: 'success',
+      message: 'User registration rejected and removed'
+    });
+
+  } catch (error) {
+    console.error('Reject user error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+});
 
 // @route   PUT /api/users/:id
 // @desc    Update user profile
