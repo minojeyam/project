@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   Home, 
   Users, 
+  UserCheck,
   MapPin, 
   BookOpen, 
   UserCheck, 
@@ -35,6 +36,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <Users className="w-5 h-5" />,
     label: 'Users',
     href: '/users',
+    roles: ['admin'],
+  },
+  {
+    icon: <UserCheck className="w-5 h-5" />,
+    label: 'Pending Approvals',
+    href: '/approvals',
     roles: ['admin'],
   },
   {

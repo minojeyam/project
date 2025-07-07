@@ -1,9 +1,9 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { auth } from '../middleware/auth.js';
 import rateLimit from 'express-rate-limit';
+import { register, login, getPendingUsers } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -62,183 +62,41 @@ const loginValidation = [
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
-router.post('/register', authLimiter, registerValidation, async (req, res) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { firstName, lastName, email, password, role, phoneNumber, parentEmail, locationId } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({
-        status: 'error',
-        message: 'User with this email already exists'
-      });
-    }
-
-    // Create user data object
-    const userData = {
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-      phoneNumber,
-      status: role === 'admin' ? 'active' : 'pending' // Admins are auto-approved
-    };
-
-    // Add role-specific fields
-    if (role === 'student') {
-      userData.parentEmail = parentEmail;
-      if (locationId) userData.locationId = locationId;
-    } else if (role === 'teacher') {
-      if (locationId) userData.locationId = locationId;
-    }
-
-    // Create new user
-    const user = new User(userData);
-    await user.save();
-
-    // Generate tokens
-    const { accessToken, refreshToken } = user.generateAuthTokens();
-
-    // Save refresh token to user
-    user.refreshTokens.push({ token: refreshToken });
-    await user.save();
-
-    // Set last login
-    user.lastLogin = new Date();
-    await user.save();
-
-    res.status(201).json({
-      status: 'success',
-      message: role === 'admin' 
-        ? 'Admin account created successfully' 
-        : 'Registration successful. Please wait for admin approval.',
-      data: {
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-          phoneNumber: user.phoneNumber,
-          locationId: user.locationId,
-          parentEmail: user.parentEmail
-        },
-        tokens: {
-          accessToken,
-          refreshToken
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
+router.post('/register', authLimiter, registerValidation, async (req, res, next) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
       status: 'error',
-      message: 'Internal server error during registration'
+      message: 'Validation failed',
+      errors: errors.array()
     });
   }
+  
+  register(req, res);
 });
 
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', authLimiter, loginValidation, async (req, res) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { email, password } = req.body;
-
-    // Find user with password field
-    const user = await User.findByEmailWithPassword(email);
-    if (!user) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Check password
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Check if user is active
-    if (user.status !== 'active') {
-      return res.status(403).json({
-        status: 'error',
-        message: user.status === 'pending' 
-          ? 'Your account is pending approval. Please contact an administrator.'
-          : 'Your account has been deactivated. Please contact an administrator.'
-      });
-    }
-
-    // Generate tokens
-    const { accessToken, refreshToken } = user.generateAuthTokens();
-
-    // Save refresh token to user
-    user.refreshTokens.push({ token: refreshToken });
-    
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
-
-    res.json({
-      status: 'success',
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-          phoneNumber: user.phoneNumber,
-          locationId: user.locationId,
-          classIds: user.classIds,
-          parentEmail: user.parentEmail,
-          lastLogin: user.lastLogin
-        },
-        tokens: {
-          accessToken,
-          refreshToken
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
+router.post('/login', authLimiter, loginValidation, async (req, res, next) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
       status: 'error',
-      message: 'Internal server error during login'
+      message: 'Validation failed',
+      errors: errors.array()
     });
   }
+  
+  login(req, res);
 });
+
+// @route   GET /api/auth/pending
+// @desc    Get all pending users
+// @access  Private (Admin only)
+router.get('/pending', auth, authorize(['admin']), getPendingUsers);
 
 // @route   POST /api/auth/refresh
 // @desc    Refresh access token

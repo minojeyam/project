@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/Auth/LoginForm';
+import RegisterForm from './components/Auth/RegisterForm';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
@@ -8,6 +9,7 @@ import TeacherDashboard from './components/Dashboard/TeacherDashboard';
 import StudentDashboard from './components/Dashboard/StudentDashboard';
 import ParentDashboard from './components/Dashboard/ParentDashboard';
 import UsersPage from './components/Pages/UsersPage';
+import PendingApprovalsPage from './components/Pages/PendingApprovalsPage';
 import ComingSoonPage from './components/Pages/ComingSoonPage';
 
 const pages = {
@@ -21,6 +23,7 @@ const pages = {
   '/schedule': 'Schedule',
   '/exams': 'Exams',
   '/notices': 'Notice Board',
+  '/approvals': 'Pending Approvals',
   '/reports': 'Reports',
   '/import': 'Bulk Import',
   '/settings': 'Settings',
@@ -28,10 +31,13 @@ const pages = {
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
+  const [showRegister, setShowRegister] = useState(false);
   const [currentPage, setCurrentPage] = useState('/dashboard');
 
   if (!user) {
-    return <LoginForm />;
+    return showRegister ? 
+      <RegisterForm onToggleForm={() => setShowRegister(false)} /> : 
+      <LoginForm onToggleForm={() => setShowRegister(true)} />;
   }
 
   const renderDashboard = () => {
@@ -55,6 +61,8 @@ const AppContent: React.FC = () => {
         return renderDashboard();
       case '/users':
         return <UsersPage />;
+      case '/approvals':
+        return <PendingApprovalsPage />;
       case '/locations':
         return <ComingSoonPage feature="Locations Management" description="Manage multiple school locations, their details, and capacity." />;
       case '/classes':

@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  onToggleForm: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -109,6 +113,14 @@ const LoginForm: React.FC = () => {
             <a href="#" className="text-sm text-teal-600 hover:text-teal-500">
               Forgot your password?
             </a>
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={onToggleForm}
+                className="text-sm text-teal-600 hover:text-teal-500"
+              >
+                Don't have an account? Register
+            </a>
           </div>
         </form>
 
@@ -121,6 +133,7 @@ const LoginForm: React.FC = () => {
             {demoLogins.map((demo) => (
               <button
                 key={demo.email}
+                type="button"
                 onClick={() => {
                   setEmail(demo.email);
                   setPassword(demo.password);

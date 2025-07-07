@@ -93,6 +93,7 @@ export interface Notice {
 
 export interface DashboardStats {
   totalStudents: number;
+  pendingApprovals: number;
   totalTeachers: number;
   totalClasses: number;
   totalLocations: number;

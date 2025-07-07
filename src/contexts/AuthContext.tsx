@@ -74,6 +74,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     // Check if user is stored in localStorage
@@ -104,6 +105,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const register = async (userData: any) => {
+    setLoading(true);
+    try {
+      // In a real implementation, this would be an API call
+      // For now, we'll just simulate it
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Registration successful, but user is pending approval
+      return { success: true, message: 'Registration successful. Please wait for admin approval.' };
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -112,6 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     login,
+    register,
     logout,
     loading,
   };
