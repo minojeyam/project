@@ -1,7 +1,8 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
-import User from '../models/User.js';
+import { v4 as uuidv4 } from 'uuid';
+import db from '../db/database.js';
 import { auth, authorize } from '../middleware/auth.js';
 import rateLimit from 'express-rate-limit';
 
@@ -77,7 +78,8 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
     const { firstName, lastName, email, password, role, phoneNumber, parentEmail, locationId } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    await db.read();
+    const existingUser = db.data.users.find(user => user.email === email);
     if (existingUser) {
       return res.status(409).json({
         status: 'error',
@@ -90,7 +92,8 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
       firstName,
       lastName,
       email,
-      password,
+    const user = {
+      id: uuidv4(),
       role,
       phoneNumber,
       status: 'pending' // All registrations require admin approval
@@ -100,10 +103,13 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
     if (role === 'student' && parentEmail) {
       userData.parentEmail = parentEmail;
     }
-
-    // Create new user
+      status: role === 'admin' ? 'active' : 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
     const user = new User(userData);
-    await user.save();
+    db.data.users.push(user);
+    await db.write();
 
     res.status(201).json({
       status: 'success',
@@ -238,7 +244,7 @@ router.get('/pending', auth, authorize(['admin']), async (req, res) => {
       parentEmail: user.parentEmail,
       createdAt: user.createdAt
     }));
-
+        id: user.id,
     res.json({
       status: 'success',
       data: {
@@ -304,7 +310,7 @@ router.post('/refresh', async (req, res) => {
           accessToken,
           refreshToken: newRefreshToken
         }
-      }
+          id: user.id,
     });
 
   } catch (error) {
@@ -335,9 +341,14 @@ router.post('/logout', auth, async (req, res) => {
       message: 'Logout successful'
     });
 
-  } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({
+    await db.read();
+    const pendingUsers = db.data.users
+      .filter(user => user.status === 'pending')
+      .map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       status: 'error',
       message: 'Internal server error during logout'
     });
@@ -367,8 +378,8 @@ router.post('/logout-all', auth, async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Internal server error during logout'
-    });
-  }
+    await db.read();
+    const user = db.data.users.find(u => u.id === decoded.userId);
 });
 
 // @route   GET /api/auth/me
@@ -378,8 +389,9 @@ router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .populate('locationId', 'name address')
-      .populate('classIds', 'title level subject');
-
+      { userId: user.id, email: user.email, role: user.role },
+    await db.read();
+    const user = db.data.users.find(u => u.email === email);
     if (!user) {
       return res.status(404).json({
         status: 'error',
@@ -397,10 +409,11 @@ router.get('/me', auth, async (req, res) => {
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({
-      status: 'error',
+      { userId: user.id, email: user.email, role: user.role },
       message: 'Internal server error'
     });
   }
 });
 
 export default router;
+      { userId: user.id },

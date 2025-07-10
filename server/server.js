@@ -1,9 +1,9 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { initializeDatabase } from './db/database.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -48,14 +48,14 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI)
+// Initialize database
+initializeDatabase()
   .then(() => {
-    console.log('✅ Connected to MongoDB successfully');
-    console.log(`📊 Database: ${mongoose.connection.name}`);
+    console.log('✅ Connected to database successfully');
+    console.log('📊 Database: LowDB (JSON file-based)');
   })
   .catch((error) => {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('❌ Database initialization error:', error);
     process.exit(1);
   });
 

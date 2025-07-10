@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import Class from '../models/Class.js';
+import { v4 as uuidv4 } from 'uuid';
+import db from '../db/database.js';
 import User from '../models/User.js';
 import Location from '../models/Location.js';
 import { auth, authorize } from '../middleware/auth.js';
@@ -109,11 +110,21 @@ router.get('/', auth, async (req, res) => {
       status: 'success',
       data: {
         classes,
-        pagination: {
-          currentPage: parseInt(page),
+      await db.read();
+      const user = db.data.users.find(u => u.id === req.user.userId);
+      if (user) {
+        query.location = user.location;
+      }
           totalPages: Math.ceil(total / parseInt(limit)),
           totalClasses: total,
-          hasNext: skip + classes.length < total,
+    await db.read();
+    let classes = db.data.classes;
+    
+    if (query.location) {
+      classes = classes.filter(cls => cls.location === query.location);
+    }
+    
+    classes = classes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           hasPrev: parseInt(page) > 1
         }
       }
@@ -229,15 +240,20 @@ router.post('/', auth, authorize(['admin']), classValidation, async (req, res) =
         message: 'Schedule conflict with existing class'
       });
     }
-
+    const newClass = {
+      id: uuidv4(),
     // Create new class
     const classData = {
       ...req.body,
       createdBy: req.user.id
+      schedule,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-
     const newClass = new Class(classData);
-    await newClass.save();
+    await db.read();
+    db.data.classes.push(newClass);
+    await db.write();
 
     // Populate the created class
     await newClass.populate([

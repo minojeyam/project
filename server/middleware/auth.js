@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import db from '../db/database.js';
 
 // Authentication middleware
 export const auth = async (req, res, next) => {
@@ -14,7 +14,9 @@ export const auth = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    await db.read();
+    const user = db.data.users.find(u => u.id === decoded.userId);
     
     // Find user
     const user = await User.findById(decoded.id);
@@ -37,14 +39,15 @@ export const auth = async (req, res, next) => {
     req.user = {
       id: user._id.toString(),
       email: user.email,
-      role: user.role,
+    if (!user || user.status !== 'active') {
       status: user.status,
       firstName: user.firstName,
       lastName: user.lastName,
       locationId: user.locationId,
       classIds: user.classIds
     };
-
+    const { password, ...userWithoutPassword } = user;
+    req.user = userWithoutPassword;
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {

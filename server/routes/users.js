@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import User from '../models/User.js';
+import db from '../db/database.js';
 import { auth, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -54,9 +54,13 @@ router.get('/', auth, authorize(['admin']), async (req, res) => {
         users,
         pagination: {
           currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalUsers: total,
-          hasNext: skip + users.length < total,
+    await db.read();
+    const users = db.data.users
+      .map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           hasPrev: parseInt(page) > 1
         }
       }
@@ -122,18 +126,21 @@ router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'User not found'
-      });
-    }
-
-    if (user.status !== 'pending') {
-      return res.status(400).json({
+    await db.read();
+    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
         status: 'error',
-        message: 'User is not in pending status'
+    if (userIndex === -1) {
       });
     }
 
     user.status = 'active';
     await user.save();
+
+    db.data.users[userIndex].status = 'active';
+    db.data.users[userIndex].updatedAt = new Date().toISOString();
+    await db.write();
+
+    const { password, ...userWithoutPassword } = db.data.users[userIndex];
 
     res.json({
       status: 'success',
@@ -141,7 +148,7 @@ router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
       data: {
         user
       }
-    });
+      data: userWithoutPassword
 
   } catch (error) {
     console.error('Approve user error:', error);
@@ -242,13 +249,10 @@ router.put('/:id', auth, [
       });
     }
 
-    // Update allowed fields
-    const allowedUpdates = ['firstName', 'lastName', 'phoneNumber'];
-    const updates = {};
-
-    allowedUpdates.forEach(field => {
+    await db.read();
+    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
       if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
+    if (userIndex === -1) {
       }
     });
 
@@ -311,6 +315,12 @@ router.delete('/:id', auth, authorize(['admin']), async (req, res) => {
       });
     }
 
+    db.data.users[userIndex].status = 'rejected';
+    db.data.users[userIndex].updatedAt = new Date().toISOString();
+    await db.write();
+
+    const { password, ...userWithoutPassword } = db.data.users[userIndex];
+
     // Prevent admin from deleting themselves
     if (req.user.id === user._id.toString()) {
       return res.status(400).json({
@@ -363,7 +373,7 @@ router.get('/stats/overview', auth, authorize(['admin']), async (req, res) => {
           totalUsers: activeStudents + activeTeachers + activeParents + pendingUsers + inactiveUsers
         }
       }
-    });
+      data: userWithoutPassword
 
   } catch (error) {
     console.error('Get user stats error:', error);

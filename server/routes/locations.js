@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import Location from '../models/Location.js';
+import { v4 as uuidv4 } from 'uuid';
+import db from '../db/database.js';
 import { auth, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -48,7 +49,8 @@ const locationValidation = [
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, search } = req.query;
+    await db.read();
+    const locations = db.data.locations.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     // Build query
     const query = {};
@@ -145,7 +147,8 @@ router.post('/', auth, authorize(['admin']), locationValidation, async (req, res
     }
 
     // Check if location with same name already exists
-    const existingLocation = await Location.findOne({ name: req.body.name });
+    await db.read();
+    const existingLocation = db.data.locations.find(loc => loc.name === name);
     if (existingLocation) {
       return res.status(409).json({
         status: 'error',
@@ -154,13 +157,17 @@ router.post('/', auth, authorize(['admin']), locationValidation, async (req, res
     }
 
     // Create new location
-    const locationData = {
+    const location = {
+      id: uuidv4(),
       ...req.body,
       createdBy: req.user.id
+      email,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-
     const location = new Location(locationData);
-    await location.save();
+    db.data.locations.push(location);
+    await db.write();
 
     // Populate the created location
     await location.populate('createdBy', 'firstName lastName email');
