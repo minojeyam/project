@@ -11,6 +11,7 @@ import ParentDashboard from './components/Dashboard/ParentDashboard';
 import UsersPage from './components/Pages/UsersPage';
 import PendingApprovalsPage from './components/Pages/PendingApprovalsPage';
 import ComingSoonPage from './components/Pages/ComingSoonPage';
+import BalancePage from './components/Pages/BalancePage';
 
 const pages = {
   '/dashboard': 'Dashboard',
@@ -19,6 +20,7 @@ const pages = {
   '/classes': 'Classes',
   '/attendance': 'Attendance',
   '/fees': 'Fees',
+  '/balance': 'Balance & Payments',
   '/materials': 'Materials',
   '/schedule': 'Schedule',
   '/exams': 'Exams',
@@ -63,6 +65,8 @@ const AppContent: React.FC = () => {
         return <UsersPage />;
       case '/approvals':
         return <PendingApprovalsPage />;
+      case '/balance':
+        return <BalancePage />;
       case '/locations':
         return <ComingSoonPage feature="Locations Management" description="Manage multiple school locations, their details, and capacity." />;
       case '/classes':
