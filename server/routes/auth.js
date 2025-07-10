@@ -2,8 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
-import { v4 as uuidv4 } from 'uuid';
-import db from '../db/database.js';
+import User from '../models/User.js';
 import { auth, authorize } from '../middleware/auth.js';
 import rateLimit from 'express-rate-limit';
 
@@ -77,8 +76,7 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
     const { firstName, lastName, email, password, role, phoneNumber, parentEmail, locationId } = req.body;
 
     // Check if user already exists
-    await db.read();
-    const existingUser = db.data.users.find(user => user.email === email);
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
         status: 'error',
@@ -87,30 +85,25 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
     }
 
     // Hash password
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create user data object
-    const user = {
-      id: uuidv4(),
+    const userData = {
       firstName,
       lastName,
       email,
-      password: hashedPassword,
+      password,
       role,
       phoneNumber,
       parentEmail,
       locationId,
-      status: role === 'admin' ? 'active' : 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      status: role === 'admin' ? 'active' : 'pending'
     };
 
-    db.data.users.push(user);
-    await db.write();
+    const user = new User(userData);
+    await user.save();
 
     // Remove password from response
-    const { password: _, ...userResponse } = user;
+    const userResponse = user.toJSON();
 
     res.status(201).json({
       status: 'success',
@@ -147,8 +140,7 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
     const { email, password } = req.body;
 
     // Find user
-    await db.read();
-    const user = db.data.users.find(u => u.email === email);
+    const user = await User.findByEmailWithPassword(email);
     
     if (!user) {
       return res.status(401).json({
@@ -158,7 +150,7 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
     }
 
     // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
         status: 'error',
@@ -177,25 +169,14 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
     }
 
     // Generate tokens
-    const accessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '24h' }
-    );
-
-    const refreshToken = jwt.sign(
-      { id: user.id },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
-    );
+    const { accessToken, refreshToken } = user.generateAuthTokens();
 
     // Update last login
-    const userIndex = db.data.users.findIndex(u => u.id === user.id);
-    db.data.users[userIndex].lastLogin = new Date().toISOString();
-    await db.write();
+    user.lastLogin = new Date();
+    await user.save();
 
     // Remove password from response
-    const { password: _, ...userResponse } = user;
+    const userResponse = user.toJSON();
 
     res.json({
       status: 'success',
@@ -223,14 +204,9 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/pending', auth, authorize(['admin']), async (req, res) => {
   try {
-    await db.read();
-    const pendingUsers = db.data.users
-      .filter(user => user.status === 'pending')
-      .map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const pendingUsers = await User.find({ status: 'pending' })
+      .populate('locationId', 'name')
+      .sort({ createdAt: -1 });
 
     res.json({
       status: 'success',
@@ -265,8 +241,7 @@ router.post('/refresh', async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     
     // Find user
-    await db.read();
-    const user = db.data.users.find(u => u.id === decoded.id);
+    const user = await User.findById(decoded.id);
     
     if (!user || user.status !== 'active') {
       return res.status(401).json({
@@ -276,17 +251,7 @@ router.post('/refresh', async (req, res) => {
     }
 
     // Generate new tokens
-    const accessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '24h' }
-    );
-
-    const newRefreshToken = jwt.sign(
-      { id: user.id },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
-    );
+    const { accessToken, refreshToken: newRefreshToken } = user.generateAuthTokens();
 
     res.json({
       status: 'success',
