@@ -12,7 +12,7 @@ const defaultData = {
       name: 'Nelliyadi',
       address: 'Nelliyadi, Kerala',
       phone: '+91 9876543210',
-      email: 'nelliyadi@ioSpace.com',
+      email: 'nelliyadi@iospace.com',
       createdAt: new Date().toISOString()
     },
     {
@@ -20,7 +20,7 @@ const defaultData = {
       name: 'Chavakacheri',
       address: 'Chavakacheri, Kerala', 
       phone: '+91 9876543211',
-      email: 'chavakacheri@ioSpace.com',
+      email: 'chavakacheri@iospace.com',
       createdAt: new Date().toISOString()
     }
   ],
@@ -45,49 +45,49 @@ export const initializeDatabase = async () => {
     const demoUsers = [
       {
         id: uuidv4(),
-        name: 'Admin User',
+        firstName: 'Admin',
+        lastName: 'User',
         email: 'admin@school.com',
         password: await bcrypt.hash('password', saltRounds),
         role: 'admin',
         status: 'active',
-        location: 'Nelliyadi',
-        phone: '+91 9876543210',
+        phoneNumber: '+91 9876543210',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: uuidv4(),
-        name: 'Teacher User',
+        firstName: 'Teacher',
+        lastName: 'User',
         email: 'teacher@school.com',
         password: await bcrypt.hash('password', saltRounds),
         role: 'teacher',
         status: 'active',
-        location: 'Nelliyadi',
-        phone: '+91 9876543211',
+        phoneNumber: '+91 9876543211',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: uuidv4(),
-        name: 'Student User',
+        firstName: 'Student',
+        lastName: 'User',
         email: 'student@school.com',
         password: await bcrypt.hash('password', saltRounds),
         role: 'student',
         status: 'active',
-        location: 'Chavakacheri',
-        phone: '+91 9876543212',
+        phoneNumber: '+91 9876543212',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: uuidv4(),
-        name: 'Parent User',
+        firstName: 'Parent',
+        lastName: 'User',
         email: 'parent@school.com',
         password: await bcrypt.hash('password', saltRounds),
         role: 'parent',
         status: 'active',
-        location: 'Chavakacheri',
-        phone: '+91 9876543213',
+        phoneNumber: '+91 9876543213',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }

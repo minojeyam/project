@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../db/database.js';
@@ -33,9 +34,7 @@ const registerValidation = [
     .withMessage('Please enter a valid email address'),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .withMessage('Password must be at least 6 characters long'),
   body('role')
     .isIn(['admin', 'teacher', 'student', 'parent'])
     .withMessage('Invalid role specified'),
@@ -87,12 +86,17 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
       });
     }
 
+    // Hash password
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     // Create user data object
-    const userData = {
+    const user = {
+      id: uuidv4(),
       firstName,
       lastName,
       email,
-      password,
+      password: hashedPassword,
       role,
       phoneNumber,
       parentEmail,
@@ -102,31 +106,17 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
       updatedAt: new Date().toISOString()
     };
 
-    const user = {
-      id: uuidv4(),
-      ...userData
-    };
-
-    // Add role-specific fields
-    if (role === 'student' && parentEmail) {
-      user.parentEmail = parentEmail;
-    }
-
     db.data.users.push(user);
     await db.write();
+
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
 
     res.status(201).json({
       status: 'success',
       message: 'Registration successful. Please wait for admin approval.',
       data: {
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          status: user.status
-        }
+        user: userResponse
       }
     });
 
@@ -156,8 +146,10 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
 
     const { email, password } = req.body;
 
-    // Find user with password field
-    const user = await User.findByEmailWithPassword(email);
+    // Find user
+    await db.read();
+    const user = db.data.users.find(u => u.email === email);
+    
     if (!user) {
       return res.status(401).json({
         status: 'error',
@@ -166,7 +158,7 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
     }
 
     // Check password
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         status: 'error',
@@ -185,32 +177,31 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
     }
 
     // Generate tokens
-    const { accessToken, refreshToken } = user.generateAuthTokens();
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || '24h' }
+    );
 
-    // Save refresh token to user
-    user.refreshTokens.push({ token: refreshToken });
-    
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
+    );
+
     // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    const userIndex = db.data.users.findIndex(u => u.id === user.id);
+    db.data.users[userIndex].lastLogin = new Date().toISOString();
+    await db.write();
+
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
 
     res.json({
       status: 'success',
       message: 'Login successful',
       data: {
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-          phoneNumber: user.phoneNumber,
-          locationId: user.locationId,
-          classIds: user.classIds,
-          parentEmail: user.parentEmail,
-          lastLogin: user.lastLogin
-        },
+        user: userResponse,
         tokens: {
           accessToken,
           refreshToken
@@ -232,27 +223,19 @@ router.post('/login', authLimiter, loginValidation, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/pending', auth, authorize(['admin']), async (req, res) => {
   try {
-    const pendingUsers = await User.find({ status: 'pending' })
-      .populate('locationId', 'name')
-      .sort({ createdAt: -1 });
-
-    // Format the response
-    const formattedUsers = pendingUsers.map(user => ({
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      phoneNumber: user.phoneNumber,
-      locationName: user.locationId ? user.locationId.name : null,
-      parentEmail: user.parentEmail,
-      createdAt: user.createdAt
-    }));
+    await db.read();
+    const pendingUsers = db.data.users
+      .filter(user => user.status === 'pending')
+      .map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     res.json({
       status: 'success',
       data: {
-        pendingUsers: formattedUsers
+        pendingUsers
       }
     });
   } catch (error) {
@@ -281,30 +264,29 @@ router.post('/refresh', async (req, res) => {
     // Verify refresh token
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     
-    // Find user and check if refresh token exists
-    const user = await User.findById(decoded.id);
-    if (!user || !user.refreshTokens.some(tokenObj => tokenObj.token === refreshToken)) {
+    // Find user
+    await db.read();
+    const user = db.data.users.find(u => u.id === decoded.id);
+    
+    if (!user || user.status !== 'active') {
       return res.status(401).json({
         status: 'error',
         message: 'Invalid refresh token'
       });
     }
 
-    // Check if user is still active
-    if (user.status !== 'active') {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Account is not active'
-      });
-    }
-
     // Generate new tokens
-    const { accessToken, refreshToken: newRefreshToken } = user.generateAuthTokens();
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || '24h' }
+    );
 
-    // Remove old refresh token and add new one
-    user.refreshTokens = user.refreshTokens.filter(tokenObj => tokenObj.token !== refreshToken);
-    user.refreshTokens.push({ token: newRefreshToken });
-    await user.save();
+    const newRefreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
+    );
 
     res.json({
       status: 'success',
@@ -331,49 +313,12 @@ router.post('/refresh', async (req, res) => {
 // @access  Private
 router.post('/logout', auth, async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    const user = await User.findById(req.user.id);
-
-    if (refreshToken && user) {
-      // Remove specific refresh token
-      user.refreshTokens = user.refreshTokens.filter(tokenObj => tokenObj.token !== refreshToken);
-      await user.save();
-    }
-
     res.json({
       status: 'success',
       message: 'Logout successful'
     });
-
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Internal server error during logout'
-    });
-  }
-});
-
-// @route   POST /api/auth/logout-all
-// @desc    Logout from all devices
-// @access  Private
-router.post('/logout-all', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    
-    if (user) {
-      // Remove all refresh tokens
-      user.refreshTokens = [];
-      await user.save();
-    }
-
-    res.json({
-      status: 'success',
-      message: 'Logged out from all devices successfully'
-    });
-
-  } catch (error) {
-    console.error('Logout all error:', error);
     res.status(500).json({
       status: 'error',
       message: 'Internal server error during logout'
@@ -386,23 +331,12 @@ router.post('/logout-all', auth, async (req, res) => {
 // @access  Private
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-      .populate('locationId', 'name address');
-
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'User not found'
-      });
-    }
-
     res.json({
       status: 'success',
       data: {
-        user
+        user: req.user
       }
     });
-
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({

@@ -14,12 +14,12 @@ export const auth = async (req, res, next) => {
     }
 
     // Verify token
-    
-    await db.read();
-    const user = db.data.users.find(u => u.id === decoded.userId);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Find user
-    const user = await User.findById(decoded.id);
+    await db.read();
+    const user = db.data.users.find(u => u.id === decoded.id);
+    
     if (!user) {
       return res.status(401).json({
         status: 'error',
@@ -35,20 +35,10 @@ export const auth = async (req, res, next) => {
       });
     }
 
-    // Add user to request object
-    req.user = {
-      id: user._id.toString(),
-      email: user.email,
-    }
-    if (!user || user.status !== 'active') {
-      status: user.status,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      locationId: user.locationId,
-      classIds: user.classIds
-    };
+    // Add user to request object (exclude password)
     const { password, ...userWithoutPassword } = user;
     req.user = userWithoutPassword;
+
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
