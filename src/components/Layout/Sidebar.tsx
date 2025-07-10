@@ -68,6 +68,12 @@ const sidebarItems: SidebarItem[] = [
     roles: ['admin', 'teacher'],
   },
   {
+    icon: <DollarSign className="w-5 h-5" />,
+    label: 'Balance & Payments',
+    href: '/balance',
+    roles: ['admin', 'teacher', 'student', 'parent'],
+  },
+  {
     icon: <FileText className="w-5 h-5" />,
     label: 'Materials',
     href: '/materials',
