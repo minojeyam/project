@@ -44,11 +44,11 @@ const initializeDefaultData = async () => {
           address: {
             street: 'Main Street',
             city: 'Nelliyadi',
-            state: 'Kerala',
-            zipCode: '670001',
-            country: 'India'
+            state: 'Northern Province',
+            zipCode: '40000',
+            country: 'Srilanka'
           },
-          phoneNumber: '+91 9876543210',
+          phoneNumber: '+94 9876543210',
           email: 'nelliyadi@iospace.com',
           capacity: 500,
           createdBy: null // Will be set to first admin user
