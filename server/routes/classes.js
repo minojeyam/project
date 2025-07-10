@@ -110,23 +110,9 @@ router.get('/', auth, async (req, res) => {
       status: 'success',
       data: {
         classes,
-      await db.read();
-      const user = db.data.users.find(u => u.id === req.user.userId);
-      if (user) {
-        query.location = user.location;
-      }
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalClasses: total,
-    await db.read();
-    let classes = db.data.classes;
-    
-    if (query.location) {
-      classes = classes.filter(cls => cls.location === query.location);
-    }
-    
-    classes = classes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          hasPrev: parseInt(page) > 1
-        }
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalClasses: total,
+        hasPrev: parseInt(page) > 1
       }
     });
 
@@ -240,13 +226,11 @@ router.post('/', auth, authorize(['admin']), classValidation, async (req, res) =
         message: 'Schedule conflict with existing class'
       });
     }
-    const newClass = {
-      id: uuidv4(),
+
     // Create new class
     const classData = {
       ...req.body,
-      createdBy: req.user.id
-      schedule,
+      createdBy: req.user.id,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
