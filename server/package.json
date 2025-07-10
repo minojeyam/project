@@ -1,6 +1,7 @@
 {
   "name": "io-space-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "Backend server for IO Space classroom management system",
   "main": "server.js",
   "scripts": {
