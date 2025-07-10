@@ -40,7 +40,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">ClassroomPro</h2>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">IO Space</h2>
           <p className="mt-2 text-sm text-gray-600">
             Multi-Location Classroom Management System

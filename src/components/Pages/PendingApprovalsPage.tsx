@@ -14,33 +14,27 @@ const PendingApprovalsPage: React.FC = () => {
   const fetchPendingUsers = async () => {
     try {
       setLoading(true);
-      // In a real implementation, this would be an API call
-      // For now, we'll use mock data
-      const mockPendingUsers = [
-        {
-          id: 1,
-          firstName: 'John',
-          lastName: 'Smith',
-          email: 'john.smith@example.com',
-          role: 'teacher',
-          phoneNumber: '+1234567890',
-          locationName: 'Nelliyadi',
-          createdAt: '2024-03-10T10:30:00Z'
-        },
-        {
-          id: 2,
-          firstName: 'Sarah',
-          lastName: 'Johnson',
-          email: 'sarah.j@example.com',
-          role: 'student',
-          phoneNumber: '+1234567891',
-          locationName: 'Chavakacheri',
-          parentEmail: 'parent@example.com',
-          createdAt: '2024-03-11T14:20:00Z'
-        }
-      ];
+      const token = localStorage.getItem('accessToken');
       
-      setPendingUsers(mockPendingUsers);
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const response = await fetch('http://localhost:5000/api/auth/pending', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch pending users');
+      }
+      
+      setPendingUsers(data.data.pendingUsers || []);
       setLoading(false);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch pending users');
@@ -50,8 +44,24 @@ const PendingApprovalsPage: React.FC = () => {
 
   const handleApprove = async (userId: number) => {
     try {
-      // In a real implementation, this would be an API call
-      // For now, we'll just update the local state
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to approve user');
+      }
+      
       setPendingUsers(pendingUsers.filter(user => user.id !== userId));
       
       // Show success message or notification
@@ -63,8 +73,24 @@ const PendingApprovalsPage: React.FC = () => {
 
   const handleReject = async (userId: number) => {
     try {
-      // In a real implementation, this would be an API call
-      // For now, we'll just update the local state
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/reject`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reject user');
+      }
+      
       setPendingUsers(pendingUsers.filter(user => user.id !== userId));
       
       // Show success message or notification

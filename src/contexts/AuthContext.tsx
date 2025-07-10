@@ -18,68 +18,22 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@school.com',
-    firstName: 'John',
-    lastName: 'Admin',
-    role: 'admin',
-    phoneNumber: '+1234567890',
-    status: 'active',
-    createdAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    email: 'teacher@school.com',
-    firstName: 'Sarah',
-    lastName: 'Teacher',
-    role: 'teacher',
-    phoneNumber: '+1234567891',
-    status: 'active',
-    createdAt: '2024-01-01T00:00:00Z',
-    locationId: '1',
-    classIds: ['1', '2'],
-  },
-  {
-    id: '3',
-    email: 'student@school.com',
-    firstName: 'Mike',
-    lastName: 'Student',
-    role: 'student',
-    phoneNumber: '+1234567892',
-    status: 'active',
-    createdAt: '2024-01-01T00:00:00Z',
-    locationId: '1',
-    classIds: ['1'],
-    parentEmail: 'parent@school.com',
-  },
-  {
-    id: '4',
-    email: 'parent@school.com',
-    firstName: 'Lisa',
-    lastName: 'Parent',
-    role: 'parent',
-    phoneNumber: '+1234567893',
-    status: 'active',
-    createdAt: '2024-01-01T00:00:00Z',
-  },
-];
-
 interface AuthProviderProps {
   children: ReactNode;
 }
 
+const API_BASE_URL = 'http://localhost:5000/api';
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const storedToken = localStorage.getItem('accessToken');
+    
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
@@ -88,48 +42,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const foundUser = mockUsers.find(u => u.email === email);
-      if (foundUser) {
-        setUser(foundUser);
-        localStorage.setItem('user', JSON.stringify(foundUser));
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      if (data.status === 'success') {
+        const userData = data.data.user;
+        const tokens = data.data.tokens;
+
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('accessToken', tokens.accessToken);
+        localStorage.setItem('refreshToken', tokens.refreshToken);
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error(data.message || 'Login failed');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+
+      if (token) {
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
       }
     } catch (error) {
-      throw error;
+      console.error('Logout error:', error);
     } finally {
-      setLoading(false);
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     }
-  };
-
-  const register = async (userData: any) => {
-    setLoading(true);
-    try {
-      // In a real implementation, this would be an API call
-      // For now, we'll just simulate it
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Registration successful, but user is pending approval
-      return { success: true, message: 'Registration successful. Please wait for admin approval.' };
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
   };
 
   const value = {
     user,
     login,
-    register,
     logout,
     loading,
   };

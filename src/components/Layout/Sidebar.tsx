@@ -130,7 +130,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) => {
           <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-teal-500 rounded-lg flex items-center justify-center">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">ClassroomPro</h1>
           <h1 className="text-xl font-bold text-gray-800">IO Space</h1>
         </div>
       </div>

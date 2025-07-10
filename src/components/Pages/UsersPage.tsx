@@ -1,47 +1,37 @@
 import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, UserCheck, UserX } from 'lucide-react';
 import DataTable from '../Common/DataTable';
 import Modal from '../Common/Modal';
+import { usersAPI } from '../../utils/api';
 
 const UsersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const mockUsers = [
-    {
-      id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      role: 'teacher',
-      status: 'active',
-      phoneNumber: '+1234567890',
-      joinDate: '2024-01-15',
-      locationName: 'Main Campus'
-    },
-    {
-      id: 2,
-      firstName: 'Jane',
-      lastName: 'Smith',
-      email: 'jane@example.com',
-      role: 'student',
-      status: 'active',
-      phoneNumber: '+1234567891',
-      joinDate: '2024-02-10',
-      locationName: 'Downtown Branch'
-    },
-    {
-      id: 3,
-      firstName: 'Bob',
-      lastName: 'Johnson',
-      email: 'bob@example.com',
-      role: 'parent',
-      status: 'pending',
-      phoneNumber: '+1234567892',
-      joinDate: '2024-03-05',
-      locationName: 'North Campus'
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await usersAPI.getAll();
+      
+      if (response.status === 'success') {
+        setUsers(response.data.users || []);
+      } else {
+        throw new Error(response.message || 'Failed to fetch users');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const columns = [
     {
@@ -102,9 +92,10 @@ const UsersPage: React.FC = () => {
       sortable: true
     },
     {
-      key: 'joinDate',
+      key: 'createdAt',
       label: 'Join Date',
-      sortable: true
+      sortable: true,
+      render: (value: string) => new Date(value).toLocaleDateString()
     },
     {
       key: 'actions',
@@ -158,23 +149,35 @@ const UsersPage: React.FC = () => {
         <div className="flex items-center space-x-3">
           <div className="bg-white px-4 py-2 rounded-lg border border-gray-200">
             <span className="text-sm text-gray-600">Total Users: </span>
-            <span className="font-semibold text-gray-900">{mockUsers.length}</span>
+            <span className="font-semibold text-gray-900">{users.length}</span>
           </div>
           <div className="bg-white px-4 py-2 rounded-lg border border-gray-200">
             <span className="text-sm text-gray-600">Pending Approval: </span>
             <span className="font-semibold text-orange-600">
-              {mockUsers.filter(u => u.status === 'pending').length}
+              {users.filter(u => u.status === 'pending').length}
             </span>
           </div>
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={mockUsers}
-        title="All Users"
-        actions={actions}
-      />
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={users}
+          title="All Users"
+          actions={actions}
+        />
+      )}
 
       <Modal
         isOpen={isModalOpen}
