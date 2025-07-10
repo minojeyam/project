@@ -54,13 +54,6 @@ router.get('/', auth, authorize(['admin']), async (req, res) => {
         users,
         pagination: {
           currentPage: parseInt(page),
-    await db.read();
-    const users = db.data.users
-      .map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      })
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           hasPrev: parseInt(page) > 1
         }
       }
@@ -126,10 +119,6 @@ router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'User not found'
-    await db.read();
-    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
-        status: 'error',
-    if (userIndex === -1) {
       });
     }
 
@@ -146,9 +135,9 @@ router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
       status: 'success',
       message: 'User approved successfully',
       data: {
-        user
+        user: userWithoutPassword
       }
-      data: userWithoutPassword
+    });
 
   } catch (error) {
     console.error('Approve user error:', error);
@@ -249,10 +238,11 @@ router.put('/:id', auth, [
       });
     }
 
-    await db.read();
-    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
+    const updates = {};
+    const allowedUpdates = ['firstName', 'lastName', 'phoneNumber'];
+    allowedUpdates.forEach(field => {
       if (req.body[field] !== undefined) {
-    if (userIndex === -1) {
+        updates[field] = req.body[field];
       }
     });
 
@@ -315,12 +305,6 @@ router.delete('/:id', auth, authorize(['admin']), async (req, res) => {
       });
     }
 
-    db.data.users[userIndex].status = 'rejected';
-    db.data.users[userIndex].updatedAt = new Date().toISOString();
-    await db.write();
-
-    const { password, ...userWithoutPassword } = db.data.users[userIndex];
-
     // Prevent admin from deleting themselves
     if (req.user.id === user._id.toString()) {
       return res.status(400).json({
@@ -373,7 +357,7 @@ router.get('/stats/overview', auth, authorize(['admin']), async (req, res) => {
           totalUsers: activeStudents + activeTeachers + activeParents + pendingUsers + inactiveUsers
         }
       }
-      data: userWithoutPassword
+    });
 
   } catch (error) {
     console.error('Get user stats error:', error);
