@@ -92,22 +92,26 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
       firstName,
       lastName,
       email,
-    const user = {
-      id: uuidv4(),
+      password,
       role,
       phoneNumber,
-      status: 'pending' // All registrations require admin approval
-    };
-
-    // Add role-specific fields
-    if (role === 'student' && parentEmail) {
-      userData.parentEmail = parentEmail;
-    }
+      parentEmail,
+      locationId,
       status: role === 'admin' ? 'active' : 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    const user = new User(userData);
+
+    const user = {
+      id: uuidv4(),
+      ...userData
+    };
+
+    // Add role-specific fields
+    if (role === 'student' && parentEmail) {
+      user.parentEmail = parentEmail;
+    }
+
     db.data.users.push(user);
     await db.write();
 
@@ -116,7 +120,7 @@ router.post('/register', authLimiter, registerValidation, async (req, res) => {
       message: 'Registration successful. Please wait for admin approval.',
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -244,7 +248,7 @@ router.get('/pending', auth, authorize(['admin']), async (req, res) => {
       parentEmail: user.parentEmail,
       createdAt: user.createdAt
     }));
-        id: user.id,
+
     res.json({
       status: 'success',
       data: {
@@ -310,7 +314,7 @@ router.post('/refresh', async (req, res) => {
           accessToken,
           refreshToken: newRefreshToken
         }
-          id: user.id,
+      }
     });
 
   } catch (error) {
@@ -341,14 +345,9 @@ router.post('/logout', auth, async (req, res) => {
       message: 'Logout successful'
     });
 
-    await db.read();
-    const pendingUsers = db.data.users
-      .filter(user => user.status === 'pending')
-      .map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      })
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
       status: 'error',
       message: 'Internal server error during logout'
     });
@@ -378,8 +377,8 @@ router.post('/logout-all', auth, async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Internal server error during logout'
-    await db.read();
-    const user = db.data.users.find(u => u.id === decoded.userId);
+    });
+  }
 });
 
 // @route   GET /api/auth/me
@@ -388,10 +387,8 @@ router.post('/logout-all', auth, async (req, res) => {
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
-      .populate('locationId', 'name address')
-      { userId: user.id, email: user.email, role: user.role },
-    await db.read();
-    const user = db.data.users.find(u => u.email === email);
+      .populate('locationId', 'name address');
+
     if (!user) {
       return res.status(404).json({
         status: 'error',
@@ -409,11 +406,10 @@ router.get('/me', auth, async (req, res) => {
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({
-      { userId: user.id, email: user.email, role: user.role },
+      status: 'error',
       message: 'Internal server error'
     });
   }
 });
 
 export default router;
-      { userId: user.id },
