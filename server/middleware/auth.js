@@ -39,6 +39,7 @@ export const auth = async (req, res, next) => {
     req.user = {
       id: user._id.toString(),
       email: user.email,
+    }
     if (!user || user.status !== 'active') {
       status: user.status,
       firstName: user.firstName,
