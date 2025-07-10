@@ -6,6 +6,7 @@ import {
   MapPin, 
   BookOpen, 
   CreditCard, 
+  DollarSign,
   FileText, 
   MessageSquare, 
   BarChart3,
