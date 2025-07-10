@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import db from '../db/database.js';
+import User from '../models/User.js';
 
 // Authentication middleware
 export const auth = async (req, res, next) => {
@@ -17,8 +17,7 @@ export const auth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Find user
-    await db.read();
-    const user = db.data.users.find(u => u.id === decoded.id);
+    const user = await User.findById(decoded.id);
     
     if (!user) {
       return res.status(401).json({
@@ -36,8 +35,7 @@ export const auth = async (req, res, next) => {
     }
 
     // Add user to request object (exclude password)
-    const { password, ...userWithoutPassword } = user;
-    req.user = userWithoutPassword;
+    req.user = user.toJSON();
 
     next();
   } catch (error) {

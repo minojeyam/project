@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import db from '../db/database.js';
+import User from '../models/User.js';
 import { auth, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -19,46 +19,43 @@ router.get('/', auth, authorize(['admin']), async (req, res) => {
       search 
     } = req.query;
 
-    await db.read();
-    let users = db.data.users;
-
-    // Apply filters
-    if (role) users = users.filter(user => user.role === role);
-    if (status) users = users.filter(user => user.status === status);
-    if (location) users = users.filter(user => user.locationId === location);
+    // Build query
+    let query = {};
+    
+    if (role) query.role = role;
+    if (status) query.status = status;
+    if (location) query.locationId = location;
     
     if (search) {
-      const searchLower = search.toLowerCase();
-      users = users.filter(user =>
-        user.firstName?.toLowerCase().includes(searchLower) ||
-        user.lastName?.toLowerCase().includes(searchLower) ||
-        user.email?.toLowerCase().includes(searchLower)
-      );
+      query.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
     }
 
-    // Remove passwords from response
-    const usersWithoutPasswords = users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
-
-    // Sort by creation date (newest first)
-    usersWithoutPasswords.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
     // Calculate pagination
-    const total = usersWithoutPasswords.length;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const paginatedUsers = usersWithoutPasswords.slice(skip, skip + parseInt(limit));
+    
+    // Get users with pagination
+    const users = await User.find(query)
+      .populate('locationId', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Get total count for pagination
+    const total = await User.countDocuments(query);
 
     res.json({
       status: 'success',
       data: {
-        users: paginatedUsers,
+        users,
         pagination: {
           currentPage: parseInt(page),
           totalPages: Math.ceil(total / parseInt(limit)),
           totalUsers: total,
-          hasNext: skip + paginatedUsers.length < total,
+          hasNext: skip + users.length < total,
           hasPrev: parseInt(page) > 1
         }
       }
@@ -78,8 +75,7 @@ router.get('/', auth, authorize(['admin']), async (req, res) => {
 // @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
-    await db.read();
-    const user = db.data.users.find(u => u.id === req.params.id);
+    const user = await User.findById(req.params.id).populate('locationId', 'name');
 
     if (!user) {
       return res.status(404).json({
@@ -89,20 +85,17 @@ router.get('/:id', auth, async (req, res) => {
     }
 
     // Check authorization - users can only view their own profile unless admin
-    if (req.user.role !== 'admin' && req.user.id !== user.id) {
+    if (req.user.role !== 'admin' && req.user.id !== user._id.toString()) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied'
       });
     }
 
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-
     res.json({
       status: 'success',
       data: {
-        user: userWithoutPassword
+        user
       }
     });
 
@@ -120,17 +113,14 @@ router.get('/:id', auth, async (req, res) => {
 // @access  Private (Admin)
 router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
   try {
-    await db.read();
-    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
+    const user = await User.findById(req.params.id);
 
-    if (userIndex === -1) {
+    if (!user) {
       return res.status(404).json({
         status: 'error',
         message: 'User not found'
       });
     }
-
-    const user = db.data.users[userIndex];
 
     if (user.status !== 'pending') {
       return res.status(400).json({
@@ -139,17 +129,14 @@ router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
       });
     }
 
-    db.data.users[userIndex].status = 'active';
-    db.data.users[userIndex].updatedAt = new Date().toISOString();
-    await db.write();
-
-    const { password, ...userWithoutPassword } = db.data.users[userIndex];
+    user.status = 'active';
+    await user.save();
 
     res.json({
       status: 'success',
       message: 'User approved successfully',
       data: {
-        user: userWithoutPassword
+        user
       }
     });
 
@@ -167,17 +154,14 @@ router.put('/:id/approve', auth, authorize(['admin']), async (req, res) => {
 // @access  Private (Admin)
 router.put('/:id/reject', auth, authorize(['admin']), async (req, res) => {
   try {
-    await db.read();
-    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
+    const user = await User.findById(req.params.id);
 
-    if (userIndex === -1) {
+    if (!user) {
       return res.status(404).json({
         status: 'error',
         message: 'User not found'
       });
     }
-
-    const user = db.data.users[userIndex];
 
     if (user.status !== 'pending') {
       return res.status(400).json({
@@ -187,8 +171,7 @@ router.put('/:id/reject', auth, authorize(['admin']), async (req, res) => {
     }
 
     // Remove the user from the database
-    db.data.users.splice(userIndex, 1);
-    await db.write();
+    await User.findByIdAndDelete(req.params.id);
 
     res.json({
       status: 'success',
@@ -239,20 +222,17 @@ router.put('/:id', auth, [
       });
     }
 
-    await db.read();
-    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
+    const user = await User.findById(req.params.id);
 
-    if (userIndex === -1) {
+    if (!user) {
       return res.status(404).json({
         status: 'error',
         message: 'User not found'
       });
     }
 
-    const user = db.data.users[userIndex];
-
     // Check authorization - users can only update their own profile unless admin
-    if (req.user.role !== 'admin' && req.user.id !== user.id) {
+    if (req.user.role !== 'admin' && req.user.id !== user._id.toString()) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied'
@@ -281,7 +261,10 @@ router.put('/:id', auth, [
 
     // Check if email is being changed and if it already exists
     if (updates.email && updates.email !== user.email) {
-      const existingUser = db.data.users.find(u => u.email === updates.email && u.id !== user.id);
+      const existingUser = await User.findOne({ 
+        email: updates.email, 
+        _id: { $ne: user._id } 
+      });
       if (existingUser) {
         return res.status(409).json({
           status: 'error',
@@ -291,16 +274,14 @@ router.put('/:id', auth, [
     }
 
     // Apply updates
-    Object.assign(db.data.users[userIndex], updates, { updatedAt: new Date().toISOString() });
-    await db.write();
-
-    const { password, ...userWithoutPassword } = db.data.users[userIndex];
+    Object.assign(user, updates);
+    await user.save();
 
     res.json({
       status: 'success',
       message: 'User updated successfully',
       data: {
-        user: userWithoutPassword
+        user
       }
     });
 
@@ -318,28 +299,24 @@ router.put('/:id', auth, [
 // @access  Private (Admin)
 router.delete('/:id', auth, authorize(['admin']), async (req, res) => {
   try {
-    await db.read();
-    const userIndex = db.data.users.findIndex(u => u.id === req.params.id);
+    const user = await User.findById(req.params.id);
 
-    if (userIndex === -1) {
+    if (!user) {
       return res.status(404).json({
         status: 'error',
         message: 'User not found'
       });
     }
 
-    const user = db.data.users[userIndex];
-
     // Prevent admin from deleting themselves
-    if (req.user.id === user.id) {
+    if (req.user.id === user._id.toString()) {
       return res.status(400).json({
         status: 'error',
         message: 'Cannot delete your own account'
       });
     }
 
-    db.data.users.splice(userIndex, 1);
-    await db.write();
+    await User.findByIdAndDelete(req.params.id);
 
     res.json({
       status: 'success',
@@ -360,24 +337,31 @@ router.delete('/:id', auth, authorize(['admin']), async (req, res) => {
 // @access  Private (Admin)
 router.get('/stats/overview', auth, authorize(['admin']), async (req, res) => {
   try {
-    await db.read();
-    const users = db.data.users;
+    const stats = await Promise.all([
+      User.countDocuments({ role: 'student', status: 'active' }),
+      User.countDocuments({ role: 'teacher', status: 'active' }),
+      User.countDocuments({ role: 'parent', status: 'active' }),
+      User.countDocuments({ status: 'pending' }),
+      User.countDocuments({ status: 'inactive' }),
+      User.countDocuments()
+    ]);
 
-    const stats = {
-      activeStudents: users.filter(u => u.role === 'student' && u.status === 'active').length,
-      activeTeachers: users.filter(u => u.role === 'teacher' && u.status === 'active').length,
-      activeParents: users.filter(u => u.role === 'parent' && u.status === 'active').length,
-      pendingUsers: users.filter(u => u.status === 'pending').length,
-      inactiveUsers: users.filter(u => u.status === 'inactive').length
+    const [activeStudents, activeTeachers, activeParents, pendingUsers, inactiveUsers, totalUsers] = stats;
+
+    const statsData = {
+      activeStudents,
+      activeTeachers,
+      activeParents,
+      pendingUsers,
+      inactiveUsers,
+      totalActiveUsers: activeStudents + activeTeachers + activeParents,
+      totalUsers
     };
-
-    stats.totalActiveUsers = stats.activeStudents + stats.activeTeachers + stats.activeParents;
-    stats.totalUsers = users.length;
 
     res.json({
       status: 'success',
       data: {
-        stats
+        stats: statsData
       }
     });
 
