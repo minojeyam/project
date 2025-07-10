@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, UserCheck, UserX } from 'lucide-react';
 import DataTable from '../Common/DataTable';
 import Modal from '../Common/Modal';
