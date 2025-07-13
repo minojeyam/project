@@ -41,14 +41,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Make API call to authenticate user
-      const response = await authAPI.login(email, password);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Store user data and tokens in localStorage
-      setUser(response.user);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
+      // Hardcoded demo users
+      const demoUsers = [
+        {
+          id: '1',
+          email: 'admin@school.com',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin',
+          phoneNumber: '+91 9876543210',
+          status: 'active',
+          createdAt: '2024-01-01T00:00:00.000Z'
+        },
+        {
+          id: '2',
+          email: 'teacher@school.com',
+          firstName: 'Teacher',
+          lastName: 'User',
+          role: 'teacher',
+          phoneNumber: '+91 9876543211',
+          status: 'active',
+          createdAt: '2024-01-01T00:00:00.000Z'
+        },
+        {
+          id: '3',
+          email: 'student@school.com',
+          firstName: 'Student',
+          lastName: 'User',
+          role: 'student',
+          phoneNumber: '+91 9876543212',
+          status: 'active',
+          createdAt: '2024-01-01T00:00:00.000Z'
+        },
+        {
+          id: '4',
+          email: 'parent@school.com',
+          firstName: 'Parent',
+          lastName: 'User',
+          role: 'parent',
+          phoneNumber: '+91 9876543213',
+          status: 'active',
+          createdAt: '2024-01-01T00:00:00.000Z'
+        }
+      ];
+      
+      // Find user by email and password (password is always 'password' for demo)
+      const foundUser = demoUsers.find(u => u.email === email);
+      
+      if (foundUser && password === 'password') {
+        setUser(foundUser as User);
+        localStorage.setItem('user', JSON.stringify(foundUser));
+        localStorage.setItem('accessToken', 'demo-token');
+        localStorage.setItem('refreshToken', 'demo-refresh-token');
+      } else {
+        throw new Error('Invalid email or password');
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       throw error;
