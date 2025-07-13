@@ -7,7 +7,7 @@ const StudentBalanceView: React.FC = () => {
   const balanceStats = [
     {
       title: 'Current Balance',
-      value: '$0',
+      value: '₹0',
       subtitle: 'All fees paid',
       icon: DollarSign,
       color: 'green',
@@ -15,7 +15,7 @@ const StudentBalanceView: React.FC = () => {
     },
     {
       title: 'Next Payment',
-      value: '$450',
+      value: '₹4,500',
       subtitle: 'Due April 1st',
       icon: Calendar,
       color: 'blue',
@@ -23,7 +23,7 @@ const StudentBalanceView: React.FC = () => {
     },
     {
       title: 'Total Paid',
-      value: '$2,250',
+      value: '₹22,500',
       subtitle: 'This academic year',
       icon: CheckCircle,
       color: 'teal',
@@ -43,7 +43,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 1,
       description: 'Monthly Tuition Fee',
-      amount: 450,
+      amount: 4500,
       dueDate: '2024-03-01',
       paidDate: '2024-02-28',
       status: 'Paid',
@@ -53,7 +53,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 2,
       description: 'Lab Fee - Chemistry',
-      amount: 75,
+      amount: 750,
       dueDate: '2024-03-01',
       paidDate: '2024-02-28',
       status: 'Paid',
@@ -63,7 +63,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 3,
       description: 'Monthly Tuition Fee',
-      amount: 450,
+      amount: 4500,
       dueDate: '2024-02-01',
       paidDate: '2024-01-30',
       status: 'Paid',
@@ -73,7 +73,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 4,
       description: 'Exam Fee - Mid-term',
-      amount: 50,
+      amount: 500,
       dueDate: '2024-02-15',
       paidDate: '2024-02-14',
       status: 'Paid',
@@ -83,7 +83,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 5,
       description: 'Monthly Tuition Fee',
-      amount: 450,
+      amount: 4500,
       dueDate: '2024-01-01',
       paidDate: '2023-12-30',
       status: 'Paid',
@@ -96,7 +96,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 1,
       description: 'Monthly Tuition Fee',
-      amount: 450,
+      amount: 4500,
       dueDate: '2024-04-01',
       type: 'Monthly Fee',
       autoPayEnabled: true
@@ -104,7 +104,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 2,
       description: 'Annual Sports Fee',
-      amount: 120,
+      amount: 1200,
       dueDate: '2024-04-15',
       type: 'Annual Fee',
       autoPayEnabled: false
@@ -112,7 +112,7 @@ const StudentBalanceView: React.FC = () => {
     {
       id: 3,
       description: 'Field Trip Fee',
-      amount: 85,
+      amount: 850,
       dueDate: '2024-04-20',
       type: 'Activity Fee',
       autoPayEnabled: false
@@ -120,11 +120,11 @@ const StudentBalanceView: React.FC = () => {
   ];
 
   const feeBreakdown = [
-    { category: 'Tuition Fee', amount: 450, frequency: 'Monthly' },
-    { category: 'Lab Fee', amount: 75, frequency: 'Monthly' },
-    { category: 'Library Fee', amount: 25, frequency: 'Monthly' },
-    { category: 'Sports Fee', amount: 120, frequency: 'Annual' },
-    { category: 'Technology Fee', amount: 50, frequency: 'Semester' }
+    { category: 'Tuition Fee', amount: 4500, frequency: 'Monthly' },
+    { category: 'Lab Fee', amount: 750, frequency: 'Monthly' },
+    { category: 'Library Fee', amount: 250, frequency: 'Monthly' },
+    { category: 'Sports Fee', amount: 1200, frequency: 'Annual' },
+    { category: 'Technology Fee', amount: 500, frequency: 'Semester' }
   ];
 
   const getStatusColor = (status: string) => {
@@ -213,7 +213,7 @@ const StudentBalanceView: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-gray-900">{payment.description}</h4>
-                    <span className="text-lg font-bold text-gray-900">${payment.amount}</span>
+                    <span className="text-lg font-bold text-gray-900">₹{payment.amount}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Due: {new Date(payment.dueDate).toLocaleDateString()}</span>
@@ -251,14 +251,14 @@ const StudentBalanceView: React.FC = () => {
                     <p className="font-medium text-gray-900">{fee.category}</p>
                     <p className="text-sm text-gray-500">{fee.frequency}</p>
                   </div>
-                  <span className="font-medium text-gray-900">${fee.amount}</span>
+                  <span className="font-medium text-gray-900">₹{fee.amount}</span>
                 </div>
               ))}
             </div>
             <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-gray-900">Monthly Total</span>
-                <span className="font-bold text-lg text-teal-600">$550</span>
+                <span className="font-bold text-lg text-teal-600">₹5,500</span>
               </div>
             </div>
           </div>
@@ -344,7 +344,7 @@ const StudentBalanceView: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${payment.amount}
+                    ₹{payment.amount}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(payment.dueDate).toLocaleDateString()}
