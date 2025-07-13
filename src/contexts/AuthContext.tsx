@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
+import { authAPI } from '../utils/api';
 
 interface AuthContextType {
   user: User | null;
@@ -22,23 +23,16 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Mock users for demo purposes
-const DEMO_USERS = [
-  { id: '1', email: 'admin@iospace.com', password: 'admin123', name: 'Admin User', role: 'admin' },
-  { id: '2', email: 'teacher@iospace.com', password: 'teacher123', name: 'Teacher User', role: 'teacher' },
-  { id: '3', email: 'parent@iospace.com', password: 'parent123', name: 'Parent User', role: 'parent' },
-  { id: '4', email: 'student@iospace.com', password: 'student123', name: 'Student User', role: 'student' },
-];
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is stored in localStorage
+    // Check if user and tokens are stored in localStorage
     const storedUser = localStorage.getItem('user');
+    const accessToken = localStorage.getItem('accessToken');
     
-    if (storedUser) {
+    if (storedUser && accessToken) {
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
@@ -47,25 +41,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Make API call to authenticate user
+      const response = await authAPI.login(email, password);
       
-      // Find user in demo users
-      const foundUser = DEMO_USERS.find(u => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        const userData = {
-          id: foundUser.id,
-          email: foundUser.email,
-          name: foundUser.name,
-          role: foundUser.role,
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        throw new Error('Invalid email or password');
-      }
+      // Store user data and tokens in localStorage
+      setUser(response.user);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
     } catch (error: any) {
       console.error('Login error:', error);
       throw error;
@@ -77,6 +60,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   };
 
   const value = {
