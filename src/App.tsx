@@ -15,6 +15,8 @@ import BalancePage from './components/Pages/BalancePage';
 import LocationsPage from './components/Pages/LocationsPage';
 import ClassesPage from './components/Pages/ClassesPage';
 import FeesPage from './components/Pages/FeesPage';
+import NoticeBoardPage from './components/Pages/NoticeBoardPage';
+import ReportsPage from './components/Pages/ReportsPage';
 
 const pages = {
   '/dashboard': 'Dashboard',
@@ -78,16 +80,16 @@ const AppContent: React.FC = () => {
         return <ComingSoonPage feature="Attendance Management" description="Track student attendance, mark present/absent, and generate reports." />;
       case '/fees':
         return <FeesPage />;
+      case '/notices':
+        return <NoticeBoardPage />;
+      case '/reports':
+        return <ReportsPage />;
       case '/materials':
         return <ComingSoonPage feature="Teaching Materials" description="Upload and manage teaching materials, assignments, and resources." />;
       case '/schedule':
         return <ComingSoonPage feature="Schedule Management" description="View and manage class schedules, timetables, and events." />;
       case '/exams':
         return <ComingSoonPage feature="Exam Management" description="Create exams, record marks, and generate report cards." />;
-      case '/notices':
-        return <ComingSoonPage feature="Notice Board" description="Send notices, announcements, and messages to students and parents." />;
-      case '/reports':
-        return <ComingSoonPage feature="Reports & Analytics" description="Generate comprehensive reports and analytics for better insights." />;
       case '/import':
         return <ComingSoonPage feature="Bulk Import/Export" description="Import and export data in bulk using CSV files." />;
       case '/settings':
