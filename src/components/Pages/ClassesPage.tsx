@@ -52,8 +52,9 @@ const ClassesPage: React.FC = () => {
     startTime: '09:00',
     endTime: '10:30',
     capacity: 30,
-    monthlyFeeAmount: 450,
-    monthlyFeeCurrency: 'USD',
+    fees: [
+      { name: 'Monthly Tuition', amount: 450, frequency: 'monthly', category: 'tuition' }
+    ],
     status: 'active',
     startDate: '',
     endDate: ''
@@ -101,10 +102,7 @@ const ClassesPage: React.FC = () => {
           duration: calculateDuration(formData.startTime, formData.endTime)
         },
         capacity: formData.capacity,
-        monthlyFee: {
-          amount: formData.monthlyFeeAmount,
-          currency: formData.monthlyFeeCurrency
-        },
+        fees: formData.fees,
         status: formData.status,
         startDate: formData.startDate,
         endDate: formData.endDate
@@ -142,8 +140,9 @@ const ClassesPage: React.FC = () => {
       startTime: classItem.schedule.startTime,
       endTime: classItem.schedule.endTime,
       capacity: classItem.capacity,
-      monthlyFeeAmount: classItem.monthlyFee.amount,
-      monthlyFeeCurrency: classItem.monthlyFee.currency,
+      fees: classItem.fees || [
+        { name: 'Monthly Tuition', amount: 450, frequency: 'monthly', category: 'tuition' }
+      ],
       status: classItem.status,
       startDate: classItem.startDate.split('T')[0],
       endDate: classItem.endDate.split('T')[0]
@@ -178,8 +177,9 @@ const ClassesPage: React.FC = () => {
       startTime: '09:00',
       endTime: '10:30',
       capacity: 30,
-      monthlyFeeAmount: 450,
-      monthlyFeeCurrency: 'USD',
+      fees: [
+        { name: 'Monthly Tuition', amount: 450, frequency: 'monthly', category: 'tuition' }
+      ],
       status: 'active',
       startDate: '',
       endDate: ''
@@ -245,13 +245,27 @@ const ClassesPage: React.FC = () => {
       )
     },
     {
-      key: 'monthlyFee',
-      label: 'Monthly Fee',
+      key: 'fees',
+      label: 'Fees',
       sortable: true,
       render: (value: any, row: Class) => (
-        <span className="text-sm font-medium text-gray-900">
-          ${row.monthlyFee.amount}
-        </span>
+        <div>
+          {row.fees && row.fees.length > 0 ? (
+            <div className="space-y-1">
+              {row.fees.slice(0, 2).map((fee, index) => (
+                <div key={index} className="text-sm">
+                  <span className="font-medium text-gray-900">${fee.amount}</span>
+                  <span className="text-gray-500 ml-1">({fee.frequency})</span>
+                </div>
+              ))}
+              {row.fees.length > 2 && (
+                <span className="text-xs text-gray-500">+{row.fees.length - 2} more</span>
+              )}
+            </div>
+          ) : (
+            <span className="text-sm text-gray-500">No fees set</span>
+          )}
+        </div>
       )
     },
     {
@@ -497,52 +511,121 @@ const ClassesPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Capacity
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Capacity
+            </label>
+            <input
+              type="number"
+              required
+              min="1"
+              max="100"
+              value={formData.capacity}
+              onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Maximum students"
+            />
+          </div>
+
+          {/* Fees Section */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Class Fees
               </label>
-              <input
-                type="number"
-                required
-                min="1"
-                max="100"
-                value={formData.capacity}
-                onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Maximum students"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Monthly Fee
-              </label>
-              <input
-                type="number"
-                required
-                min="0"
-                step="0.01"
-                value={formData.monthlyFeeAmount}
-                onChange={(e) => setFormData({ ...formData, monthlyFeeAmount: parseFloat(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Fee amount"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
-              </label>
-              <select
-                value={formData.monthlyFeeCurrency}
-                onChange={(e) => setFormData({ ...formData, monthlyFeeCurrency: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    fees: [...formData.fees, { name: '', amount: 0, frequency: 'monthly', category: 'tuition' }]
+                  });
+                }}
+                className="px-3 py-1 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 text-sm font-medium"
               >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="CAD">CAD</option>
-                <option value="AUD">AUD</option>
-              </select>
+                Add Fee
+              </button>
+            </div>
+            <div className="space-y-3 max-h-40 overflow-y-auto">
+              {formData.fees.map((fee, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Fee name"
+                      value={fee.name}
+                      onChange={(e) => {
+                        const newFees = [...formData.fees];
+                        newFees[index].name = e.target.value;
+                        setFormData({ ...formData, fees: newFees });
+                      }}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      placeholder="Amount"
+                      min="0"
+                      step="0.01"
+                      value={fee.amount}
+                      onChange={(e) => {
+                        const newFees = [...formData.fees];
+                        newFees[index].amount = parseFloat(e.target.value) || 0;
+                        setFormData({ ...formData, fees: newFees });
+                      }}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <select
+                      value={fee.frequency}
+                      onChange={(e) => {
+                        const newFees = [...formData.fees];
+                        newFees[index].frequency = e.target.value;
+                        setFormData({ ...formData, fees: newFees });
+                      }}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="semester">Semester</option>
+                      <option value="annual">Annual</option>
+                      <option value="one-time">One-time</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <select
+                      value={fee.category}
+                      onChange={(e) => {
+                        const newFees = [...formData.fees];
+                        newFees[index].category = e.target.value;
+                        setFormData({ ...formData, fees: newFees });
+                      }}
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="tuition">Tuition</option>
+                      <option value="lab">Lab</option>
+                      <option value="library">Library</option>
+                      <option value="sports">Sports</option>
+                      <option value="transport">Transport</option>
+                      <option value="exam">Exam</option>
+                      <option value="other">Other</option>
+                    </select>
+                    {formData.fees.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newFees = formData.fees.filter((_, i) => i !== index);
+                          setFormData({ ...formData, fees: newFees });
+                        }}
+                        className="p-1 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

@@ -382,6 +382,10 @@ export const classesAPI = {
           amount: 450,
           currency: 'USD'
         },
+        fees: [
+          { name: 'Monthly Tuition', amount: 450, frequency: 'monthly', category: 'tuition' },
+          { name: 'Lab Fee', amount: 75, frequency: 'semester', category: 'lab' }
+        ],
         status: 'active',
         startDate: '2024-01-15T00:00:00.000Z',
         endDate: '2024-12-15T00:00:00.000Z',
@@ -409,6 +413,10 @@ export const classesAPI = {
           amount: 520,
           currency: 'USD'
         },
+        fees: [
+          { name: 'Monthly Tuition', amount: 520, frequency: 'monthly', category: 'tuition' },
+          { name: 'Lab Fee', amount: 100, frequency: 'semester', category: 'lab' }
+        ],
         status: 'active',
         startDate: '2024-01-15T00:00:00.000Z',
         endDate: '2024-12-15T00:00:00.000Z',
@@ -436,6 +444,11 @@ export const classesAPI = {
           amount: 600,
           currency: 'USD'
         },
+        fees: [
+          { name: 'Monthly Tuition', amount: 600, frequency: 'monthly', category: 'tuition' },
+          { name: 'Lab Fee', amount: 150, frequency: 'semester', category: 'lab' },
+          { name: 'Equipment Fee', amount: 50, frequency: 'annual', category: 'other' }
+        ],
         status: 'active',
         startDate: '2024-01-15T00:00:00.000Z',
         endDate: '2024-12-15T00:00:00.000Z',
