@@ -1,5 +1,50 @@
 // API utility functions
-const API_BASE_URL = 'http://localhost:5000/api';
+// Mock API for frontend-only operation
+const MOCK_DELAY = 1000; // Simulate network delay
+
+// Mock users for demo purposes
+const DEMO_USERS = [
+  { 
+    id: '1', 
+    email: 'admin@iospace.com', 
+    password: 'admin123', 
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    phoneNumber: '+1234567890',
+    isActive: true
+  },
+  { 
+    id: '2', 
+    email: 'teacher@iospace.com', 
+    password: 'teacher123', 
+    firstName: 'Teacher',
+    lastName: 'User',
+    role: 'teacher',
+    phoneNumber: '+1234567891',
+    isActive: true
+  },
+  { 
+    id: '3', 
+    email: 'parent@iospace.com', 
+    password: 'parent123', 
+    firstName: 'Parent',
+    lastName: 'User',
+    role: 'parent',
+    phoneNumber: '+1234567892',
+    isActive: true
+  },
+  { 
+    id: '4', 
+    email: 'student@iospace.com', 
+    password: 'student123', 
+    firstName: 'Student',
+    lastName: 'User',
+    role: 'student',
+    phoneNumber: '+1234567893',
+    isActive: true
+  },
+];
 
 // Get auth token from localStorage
 const getAuthToken = (): string | null => {
@@ -14,6 +59,9 @@ const createAuthHeaders = (): HeadersInit => {
     ...(token && { 'Authorization': `Bearer ${token}` }),
   };
 };
+
+// Mock API delay function
+const mockDelay = () => new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
 
 // Generic API request function
 export const apiRequest = async (
@@ -87,23 +135,51 @@ export const apiRequest = async (
 
 // Specific API functions
 export const authAPI = {
-  login: (email: string, password: string) =>
-    apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    }),
-  
-  register: (userData: any) =>
-    apiRequest('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    }),
-  
-  logout: (refreshToken: string) =>
-    apiRequest('/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    }),
+  login: async (email: string, password: string): Promise<any> => {
+    await mockDelay();
+    
+    const user = DEMO_USERS.find(u => u.email === email && u.password === password);
+    if (!user) {
+      throw new Error('Invalid email or password');
+    }
+    
+    const { password: _, ...userWithoutPassword } = user;
+    return {
+      status: 'success',
+      message: 'Login successful',
+      user: userWithoutPassword,
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token'
+    };
+  },
+  register: async (userData: any): Promise<any> => {
+    await mockDelay();
+    
+    // Check if user already exists
+    const existingUser = DEMO_USERS.find(u => u.email === userData.email);
+    if (existingUser) {
+      throw new Error('User already exists');
+    }
+    
+    return {
+      status: 'success',
+      message: 'Registration successful'
+    };
+  },
+  logout: async (): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Logout successful'
+    };
+  },
+  refreshToken: async (refreshToken: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      accessToken: 'new-mock-access-token'
+    };
+  },
   
   getProfile: () => apiRequest('/auth/me'),
   
@@ -111,9 +187,52 @@ export const authAPI = {
 };
 
 export const usersAPI = {
-  getAll: (params?: any) => {
-    const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return apiRequest(`/users${queryString}`);
+  getUsers: async (params?: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      data: {
+        users: DEMO_USERS.map(({ password, ...user }) => user),
+        totalPages: 1,
+        totalUsers: DEMO_USERS.length,
+        hasPrev: false
+      }
+    };
+  },
+  getUserById: async (id: string): Promise<any> => {
+    await mockDelay();
+    const user = DEMO_USERS.find(u => u.id === id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const { password, ...userWithoutPassword } = user;
+    return {
+      status: 'success',
+      data: { user: userWithoutPassword }
+    };
+  },
+  createUser: async (userData: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'User created successfully',
+      data: { user: { ...userData, id: Date.now().toString() } }
+    };
+  },
+  updateUser: async (id: string, userData: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'User updated successfully',
+      data: { user: { ...userData, id } }
+    };
+  },
+  deleteUser: async (id: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'User deleted successfully'
+    };
   },
   
   getById: (id: string) => apiRequest(`/users/${id}`),
@@ -135,9 +254,47 @@ export const usersAPI = {
 };
 
 export const locationsAPI = {
-  getAll: (params?: any) => {
-    const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return apiRequest(`/locations${queryString}`);
+  getLocations: async (params?: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      data: {
+        locations: [],
+        totalPages: 1,
+        totalLocations: 0,
+        hasPrev: false
+      }
+    };
+  },
+  getLocationById: async (id: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      data: { location: null }
+    };
+  },
+  createLocation: async (locationData: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Location created successfully',
+      data: { location: { ...locationData, id: Date.now().toString() } }
+    };
+  },
+  updateLocation: async (id: string, locationData: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Location updated successfully',
+      data: { location: { ...locationData, id } }
+    };
+  },
+  deleteLocation: async (id: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Location deleted successfully'
+    };
   },
   
   getById: (id: string) => apiRequest(`/locations/${id}`),
@@ -159,9 +316,54 @@ export const locationsAPI = {
 };
 
 export const classesAPI = {
-  getAll: (params?: any) => {
-    const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return apiRequest(`/classes${queryString}`);
+  getClasses: async (params?: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      data: {
+        classes: [],
+        totalPages: 1,
+        totalClasses: 0,
+        hasPrev: false
+      }
+    };
+  },
+  getClassById: async (id: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      data: { class: null }
+    };
+  },
+  createClass: async (classData: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Class created successfully',
+      data: { class: { ...classData, id: Date.now().toString() } }
+    };
+  },
+  updateClass: async (id: string, classData: any): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Class updated successfully',
+      data: { class: { ...classData, id } }
+    };
+  },
+  deleteClass: async (id: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Class deleted successfully'
+    };
+  },
+  enrollStudent: async (classId: string, studentId: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Student enrolled successfully'
+    };
   },
   
   getById: (id: string) => apiRequest(`/classes/${id}`),
@@ -180,10 +382,4 @@ export const classesAPI = {
   
   delete: (id: string) =>
     apiRequest(`/classes/${id}`, { method: 'DELETE' }),
-  
-  enrollStudent: (id: string, studentId: string) =>
-    apiRequest(`/classes/${id}/enroll`, {
-      method: 'POST',
-      body: JSON.stringify({ studentId }),
-    }),
 };
