@@ -256,12 +256,51 @@ export const usersAPI = {
 export const locationsAPI = {
   getLocations: async (params?: any): Promise<any> => {
     await mockDelay();
+    
+    // Mock locations data
+    const mockLocations = [
+      {
+        id: '1',
+        name: 'Nelliyadi Campus',
+        address: {
+          street: 'Main Street',
+          city: 'Nelliyadi',
+          state: 'Northern Province',
+          zipCode: '40000',
+          country: 'Sri Lanka'
+        },
+        phoneNumber: '+94 9876543210',
+        email: 'nelliyadi@iospace.com',
+        capacity: 500,
+        currentEnrollment: 387,
+        status: 'active',
+        createdAt: '2024-01-01T00:00:00.000Z'
+      },
+      {
+        id: '2',
+        name: 'Chavakacheri Campus',
+        address: {
+          street: 'School Road',
+          city: 'Chavakacheri',
+          state: 'Northern Province',
+          zipCode: '40002',
+          country: 'Sri Lanka'
+        },
+        phoneNumber: '+94 9876543211',
+        email: 'chavakacheri@iospace.com',
+        capacity: 400,
+        currentEnrollment: 298,
+        status: 'active',
+        createdAt: '2024-01-01T00:00:00.000Z'
+      }
+    ];
+    
     return {
       status: 'success',
       data: {
-        locations: [],
+        locations: mockLocations,
         totalPages: 1,
-        totalLocations: 0,
+        totalLocations: mockLocations.length,
         hasPrev: false
       }
     };
@@ -318,12 +357,98 @@ export const locationsAPI = {
 export const classesAPI = {
   getClasses: async (params?: any): Promise<any> => {
     await mockDelay();
+    
+    // Mock classes data
+    const mockClasses = [
+      {
+        id: '1',
+        title: 'Advanced Mathematics',
+        level: 'Grade 10',
+        subject: 'Mathematics',
+        description: 'Advanced mathematical concepts including algebra and geometry',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        teacherId: '2',
+        teacherName: 'Teacher User',
+        schedule: {
+          dayOfWeek: 1,
+          startTime: '09:00',
+          endTime: '10:30',
+          duration: 90
+        },
+        capacity: 30,
+        currentEnrollment: 25,
+        monthlyFee: {
+          amount: 450,
+          currency: 'USD'
+        },
+        status: 'active',
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2024-12-15T00:00:00.000Z',
+        createdAt: '2024-01-01T00:00:00.000Z'
+      },
+      {
+        id: '2',
+        title: 'Physics Fundamentals',
+        level: 'Grade 9',
+        subject: 'Physics',
+        description: 'Introduction to physics concepts and laboratory work',
+        locationId: '2',
+        locationName: 'Chavakacheri Campus',
+        teacherId: '2',
+        teacherName: 'Teacher User',
+        schedule: {
+          dayOfWeek: 2,
+          startTime: '11:00',
+          endTime: '12:30',
+          duration: 90
+        },
+        capacity: 25,
+        currentEnrollment: 22,
+        monthlyFee: {
+          amount: 520,
+          currency: 'USD'
+        },
+        status: 'active',
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2024-12-15T00:00:00.000Z',
+        createdAt: '2024-01-01T00:00:00.000Z'
+      },
+      {
+        id: '3',
+        title: 'Chemistry Lab',
+        level: 'Grade 11',
+        subject: 'Chemistry',
+        description: 'Hands-on chemistry experiments and theory',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        teacherId: '2',
+        teacherName: 'Teacher User',
+        schedule: {
+          dayOfWeek: 3,
+          startTime: '14:00',
+          endTime: '15:30',
+          duration: 90
+        },
+        capacity: 20,
+        currentEnrollment: 18,
+        monthlyFee: {
+          amount: 600,
+          currency: 'USD'
+        },
+        status: 'active',
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2024-12-15T00:00:00.000Z',
+        createdAt: '2024-01-01T00:00:00.000Z'
+      }
+    ];
+    
     return {
       status: 'success',
       data: {
-        classes: [],
+        classes: mockClasses,
         totalPages: 1,
-        totalClasses: 0,
+        totalClasses: mockClasses.length,
         hasPrev: false
       }
     };

@@ -12,6 +12,8 @@ import UsersPage from './components/Pages/UsersPage';
 import PendingApprovalsPage from './components/Pages/PendingApprovalsPage';
 import ComingSoonPage from './components/Pages/ComingSoonPage';
 import BalancePage from './components/Pages/BalancePage';
+import LocationsPage from './components/Pages/LocationsPage';
+import ClassesPage from './components/Pages/ClassesPage';
 
 const pages = {
   '/dashboard': 'Dashboard',
@@ -68,9 +70,9 @@ const AppContent: React.FC = () => {
       case '/balance':
         return <BalancePage />;
       case '/locations':
-        return <ComingSoonPage feature="Locations Management" description="Manage multiple school locations, their details, and capacity." />;
+        return <LocationsPage />;
       case '/classes':
-        return <ComingSoonPage feature="Classes Management" description="Create and manage classes, assign teachers, and set schedules." />;
+        return <ClassesPage />;
       case '/attendance':
         return <ComingSoonPage feature="Attendance Management" description="Track student attendance, mark present/absent, and generate reports." />;
       case '/fees':
