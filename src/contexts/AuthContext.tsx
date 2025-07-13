@@ -22,7 +22,13 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Mock users for demo purposes
+const DEMO_USERS = [
+  { id: '1', email: 'admin@iospace.com', password: 'admin123', name: 'Admin User', role: 'admin' },
+  { id: '2', email: 'teacher@iospace.com', password: 'teacher123', name: 'Teacher User', role: 'teacher' },
+  { id: '3', email: 'parent@iospace.com', password: 'parent123', name: 'Parent User', role: 'parent' },
+  { id: '4', email: 'student@iospace.com', password: 'student123', name: 'Student User', role: 'student' },
+];
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,9 +37,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('accessToken');
     
-    if (storedUser && storedToken) {
+    if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
@@ -42,62 +47,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      if (data.status === 'success') {
-        const userData = data.data.user;
-        const tokens = data.data.tokens;
-
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Find user in demo users
+      const foundUser = DEMO_USERS.find(u => u.email === email && u.password === password);
+      
+      if (foundUser) {
+        const userData = {
+          id: foundUser.id,
+          email: foundUser.email,
+          name: foundUser.name,
+          role: foundUser.role,
+        };
+        
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('accessToken', tokens.accessToken);
-        localStorage.setItem('refreshToken', tokens.refreshToken);
       } else {
-        throw new Error(data.message || 'Login failed');
+        throw new Error('Invalid email or password');
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      throw new Error(error.message || 'Login failed. Please try again.');
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
-
-      if (token) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ refreshToken }),
-        });
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
   const value = {
