@@ -67,8 +67,8 @@ const FeesPage: React.FC = () => {
           id: '1',
           name: 'Monthly Tuition Fee',
           description: 'Regular monthly tuition fee for all students',
-          amount: 450,
-          currency: 'USD',
+          amount: 4500,
+          currency: 'INR',
           frequency: 'monthly',
           category: 'tuition',
           applicableClasses: ['1', '2', '3'],
@@ -79,8 +79,8 @@ const FeesPage: React.FC = () => {
           id: '2',
           name: 'Laboratory Fee',
           description: 'Fee for laboratory equipment and materials',
-          amount: 75,
-          currency: 'USD',
+          amount: 750,
+          currency: 'INR',
           frequency: 'semester',
           category: 'lab',
           applicableClasses: ['2', '3'],
@@ -91,8 +91,8 @@ const FeesPage: React.FC = () => {
           id: '3',
           name: 'Annual Sports Fee',
           description: 'Fee for sports activities and equipment',
-          amount: 120,
-          currency: 'USD',
+          amount: 1200,
+          currency: 'INR',
           frequency: 'annual',
           category: 'sports',
           applicableClasses: ['1', '2', '3'],
@@ -109,10 +109,10 @@ const FeesPage: React.FC = () => {
           className: 'Advanced Mathematics',
           feeStructureId: '1',
           feeName: 'Monthly Tuition Fee',
-          amount: 450,
+          amount: 4500,
           dueDate: '2024-04-01',
           status: 'paid',
-          paidAmount: 450,
+          paidAmount: 4500,
           paidDate: '2024-03-28',
           paymentMethod: 'Card'
         },
@@ -123,7 +123,7 @@ const FeesPage: React.FC = () => {
           className: 'Physics Fundamentals',
           feeStructureId: '1',
           feeName: 'Monthly Tuition Fee',
-          amount: 450,
+          amount: 4500,
           dueDate: '2024-04-01',
           status: 'pending',
           paidAmount: 0
@@ -135,7 +135,7 @@ const FeesPage: React.FC = () => {
           className: 'Chemistry Lab',
           feeStructureId: '2',
           feeName: 'Laboratory Fee',
-          amount: 75,
+          amount: 750,
           dueDate: '2024-03-15',
           status: 'overdue',
           paidAmount: 0
@@ -147,10 +147,10 @@ const FeesPage: React.FC = () => {
           className: 'Advanced Mathematics',
           feeStructureId: '1',
           feeName: 'Monthly Tuition Fee',
-          amount: 450,
+          amount: 4500,
           dueDate: '2024-04-01',
           status: 'partial',
-          paidAmount: 200,
+          paidAmount: 2000,
           paidDate: '2024-03-25',
           paymentMethod: 'Cash'
         }
@@ -209,7 +209,7 @@ const FeesPage: React.FC = () => {
       label: 'Amount',
       sortable: true,
       render: (value: number, row: FeeStructure) => (
-        <span className="font-medium text-gray-900">${value} {row.currency}</span>
+        <span className="font-medium text-gray-900">₹{value}</span>
       )
     },
     {
@@ -286,9 +286,9 @@ const FeesPage: React.FC = () => {
       sortable: true,
       render: (value: number, row: StudentFee) => (
         <div>
-          <p className="font-medium text-gray-900">${value}</p>
+          <p className="font-medium text-gray-900">₹{value}</p>
           {row.paidAmount > 0 && (
-            <p className="text-sm text-green-600">Paid: ${row.paidAmount}</p>
+            <p className="text-sm text-green-600">Paid: ₹{row.paidAmount}</p>
           )}
         </div>
       )
@@ -340,21 +340,21 @@ const FeesPage: React.FC = () => {
   const stats = [
     {
       title: 'Total Revenue',
-      value: '$45,600',
+      value: '₹4,56,000',
       subtitle: 'This month',
       icon: DollarSign,
       color: 'green'
     },
     {
       title: 'Pending Payments',
-      value: '$8,450',
+      value: '₹84,500',
       subtitle: '18 students',
       icon: Clock,
       color: 'orange'
     },
     {
       title: 'Overdue Payments',
-      value: '$2,850',
+      value: '₹28,500',
       subtitle: '7 students',
       icon: AlertCircle,
       color: 'red'
@@ -486,7 +486,7 @@ const FeesPage: React.FC = () => {
                           <p className="text-sm font-medium text-gray-900">{fee.studentName}</p>
                           <p className="text-xs text-gray-500">{fee.feeName}</p>
                         </div>
-                        <span className="text-sm font-medium text-green-600">${fee.paidAmount}</span>
+                        <span className="text-sm font-medium text-green-600">₹{fee.paidAmount}</span>
                       </div>
                     ))}
                   </div>
@@ -501,7 +501,7 @@ const FeesPage: React.FC = () => {
                           <p className="text-sm font-medium text-gray-900">{fee.studentName}</p>
                           <p className="text-xs text-gray-500">{fee.feeName}</p>
                         </div>
-                        <span className="text-sm font-medium text-red-600">${fee.amount}</span>
+                        <span className="text-sm font-medium text-red-600">₹{fee.amount}</span>
                       </div>
                     ))}
                   </div>
@@ -664,7 +664,7 @@ const FeesPage: React.FC = () => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900">{selectedItem.studentName}</h4>
               <p className="text-sm text-gray-600">{selectedItem.feeName}</p>
-              <p className="text-lg font-bold text-gray-900 mt-2">${selectedItem.amount}</p>
+              <p className="text-lg font-bold text-gray-900 mt-2">₹{selectedItem.amount}</p>
             </div>
 
             <form className="space-y-4">
@@ -680,7 +680,7 @@ const FeesPage: React.FC = () => {
                     max={selectedItem.amount - selectedItem.paidAmount}
                     step="0.01"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    placeholder="0.00"
+                    placeholder="Amount in Rs"
                   />
                 </div>
                 <div>
@@ -691,6 +691,7 @@ const FeesPage: React.FC = () => {
                     <option value="cash">Cash</option>
                     <option value="card">Card</option>
                     <option value="bank_transfer">Bank Transfer</option>
+                    <option value="upi">UPI</option>
                     <option value="check">Check</option>
                   </select>
                 </div>
@@ -748,7 +749,7 @@ const FeesPage: React.FC = () => {
                 <option value="">Choose fee structure</option>
                 {feeStructures.map(fee => (
                   <option key={fee.id} value={fee.id}>
-                    {fee.name} - ${fee.amount}
+                    {fee.name} - ₹{fee.amount}
                   </option>
                 ))}
               </select>

@@ -9,7 +9,7 @@ const AdminBalanceView: React.FC = () => {
   const financialStats = [
     {
       title: 'Total Revenue',
-      value: '$124,580',
+      value: '₹12,45,800',
       change: '+12.5%',
       isPositive: true,
       icon: DollarSign,
@@ -17,7 +17,7 @@ const AdminBalanceView: React.FC = () => {
     },
     {
       title: 'Outstanding Fees',
-      value: '$18,450',
+      value: '₹1,84,500',
       change: '-8.2%',
       isPositive: false,
       icon: AlertCircle,
@@ -25,7 +25,7 @@ const AdminBalanceView: React.FC = () => {
     },
     {
       title: 'Monthly Target',
-      value: '$150,000',
+      value: '₹15,00,000',
       change: '83% achieved',
       isPositive: true,
       icon: TrendingUp,
@@ -46,7 +46,7 @@ const AdminBalanceView: React.FC = () => {
       id: 1,
       studentName: 'Alice Johnson',
       class: 'Grade 7A',
-      amount: 450,
+      amount: 4500,
       type: 'Monthly Fee',
       status: 'Completed',
       date: '2024-03-15',
@@ -57,7 +57,7 @@ const AdminBalanceView: React.FC = () => {
       id: 2,
       studentName: 'Bob Smith',
       class: 'Grade 8B',
-      amount: 520,
+      amount: 5200,
       type: 'Monthly Fee + Lab',
       status: 'Pending',
       date: '2024-03-14',
@@ -68,7 +68,7 @@ const AdminBalanceView: React.FC = () => {
       id: 3,
       studentName: 'Carol Davis',
       class: 'Grade 6A',
-      amount: 380,
+      amount: 3800,
       type: 'Monthly Fee',
       status: 'Completed',
       date: '2024-03-14',
@@ -79,7 +79,7 @@ const AdminBalanceView: React.FC = () => {
       id: 4,
       studentName: 'David Wilson',
       class: 'Grade 9C',
-      amount: 600,
+      amount: 6000,
       type: 'Monthly + Exam Fee',
       status: 'Failed',
       date: '2024-03-13',
@@ -93,7 +93,7 @@ const AdminBalanceView: React.FC = () => {
       id: 1,
       studentName: 'Emma Brown',
       class: 'Grade 8A',
-      amount: 450,
+      amount: 4500,
       daysOverdue: 15,
       lastContact: '2024-03-01',
       parentPhone: '+1 234-567-8901',
@@ -103,7 +103,7 @@ const AdminBalanceView: React.FC = () => {
       id: 2,
       studentName: 'Frank Miller',
       class: 'Grade 7B',
-      amount: 520,
+      amount: 5200,
       daysOverdue: 8,
       lastContact: '2024-03-08',
       parentPhone: '+1 234-567-8902',
@@ -133,7 +133,7 @@ const AdminBalanceView: React.FC = () => {
       label: 'Amount',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-gray-900">${value}</span>
+        <span className="font-medium text-gray-900">₹{value}</span>
       )
     },
     {
@@ -203,7 +203,7 @@ const AdminBalanceView: React.FC = () => {
       label: 'Amount',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-red-600">${value}</span>
+        <span className="font-medium text-red-600">₹{value}</span>
       )
     },
     {

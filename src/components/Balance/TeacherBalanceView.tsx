@@ -16,7 +16,7 @@ const TeacherBalanceView: React.FC = () => {
     },
     {
       title: 'Fees Collected',
-      value: '$45,600',
+      value: '₹4,56,000',
       subtitle: 'This month',
       icon: DollarSign,
       color: 'green'
@@ -30,7 +30,7 @@ const TeacherBalanceView: React.FC = () => {
     },
     {
       title: 'Pending Fees',
-      value: '$2,850',
+      value: '₹28,500',
       subtitle: '7 students',
       icon: AlertCircle,
       color: 'orange'
@@ -42,9 +42,9 @@ const TeacherBalanceView: React.FC = () => {
       id: 1,
       name: 'Mathematics Grade 7',
       students: 32,
-      monthlyFee: 450,
-      collected: 28800,
-      pending: 1800,
+      monthlyFee: 4500,
+      collected: 288000,
+      pending: 18000,
       paymentRate: 94.1,
       location: 'Nelliyadi'
     },
@@ -52,9 +52,9 @@ const TeacherBalanceView: React.FC = () => {
       id: 2,
       name: 'Physics Grade 8',
       students: 28,
-      monthlyFee: 520,
-      collected: 13520,
-      pending: 1040,
+      monthlyFee: 5200,
+      collected: 135200,
+      pending: 10400,
       paymentRate: 92.9,
       location: 'Nelliyadi'
     },
@@ -62,9 +62,9 @@ const TeacherBalanceView: React.FC = () => {
       id: 3,
       name: 'Chemistry Grade 9',
       students: 35,
-      monthlyFee: 600,
-      collected: 19800,
-      pending: 1800,
+      monthlyFee: 6000,
+      collected: 198000,
+      pending: 18000,
       paymentRate: 91.7,
       location: 'Chavakacheri'
     },
@@ -72,9 +72,9 @@ const TeacherBalanceView: React.FC = () => {
       id: 4,
       name: 'Mathematics Grade 8',
       students: 33,
-      monthlyFee: 480,
-      collected: 14880,
-      pending: 960,
+      monthlyFee: 4800,
+      collected: 148800,
+      pending: 9600,
       paymentRate: 93.9,
       location: 'Chavakacheri'
     }
@@ -85,7 +85,7 @@ const TeacherBalanceView: React.FC = () => {
       id: 1,
       studentName: 'Alice Johnson',
       class: 'Mathematics Grade 7',
-      amount: 450,
+      amount: 4500,
       status: 'Paid',
       paidDate: '2024-03-15',
       method: 'Card',
@@ -95,7 +95,7 @@ const TeacherBalanceView: React.FC = () => {
       id: 2,
       studentName: 'Bob Smith',
       class: 'Physics Grade 8',
-      amount: 520,
+      amount: 5200,
       status: 'Pending',
       paidDate: null,
       method: null,
@@ -105,7 +105,7 @@ const TeacherBalanceView: React.FC = () => {
       id: 3,
       studentName: 'Carol Davis',
       class: 'Chemistry Grade 9',
-      amount: 600,
+      amount: 6000,
       status: 'Paid',
       paidDate: '2024-03-10',
       method: 'Bank Transfer',
@@ -115,7 +115,7 @@ const TeacherBalanceView: React.FC = () => {
       id: 4,
       studentName: 'David Wilson',
       class: 'Mathematics Grade 8',
-      amount: 480,
+      amount: 4800,
       status: 'Overdue',
       paidDate: null,
       method: null,
@@ -140,7 +140,7 @@ const TeacherBalanceView: React.FC = () => {
       label: 'Monthly Fee',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-gray-900">${value}</span>
+        <span className="font-medium text-gray-900">₹{value}</span>
       )
     },
     {
@@ -148,7 +148,7 @@ const TeacherBalanceView: React.FC = () => {
       label: 'Collected',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-green-600">${value.toLocaleString()}</span>
+        <span className="font-medium text-green-600">₹{value.toLocaleString()}</span>
       )
     },
     {
@@ -156,7 +156,7 @@ const TeacherBalanceView: React.FC = () => {
       label: 'Pending',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-orange-600">${value.toLocaleString()}</span>
+        <span className="font-medium text-orange-600">₹{value.toLocaleString()}</span>
       )
     },
     {
@@ -203,7 +203,7 @@ const TeacherBalanceView: React.FC = () => {
       label: 'Amount',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-gray-900">${value}</span>
+        <span className="font-medium text-gray-900">₹{value}</span>
       )
     },
     {
