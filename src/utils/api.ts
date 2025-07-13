@@ -2,6 +2,9 @@
 // Mock API for frontend-only operation
 const MOCK_DELAY = 1000; // Simulate network delay
 
+// API Base URL (not used in mock mode)
+const API_BASE_URL = 'http://localhost:5000/api';
+
 // Mock users for demo purposes
 const DEMO_USERS = [
   { 
@@ -190,24 +193,37 @@ export const usersAPI = {
   getAll: async (params?: any): Promise<any> => {
     await mockDelay();
     
-    let filteredUsers = [...DEMO_USERS, ...ACTIVE_USERS];
+    // Combine all users and add missing fields
+    let allUsers = [
+      ...DEMO_USERS.map(user => ({
+        ...user,
+        status: user.status || 'active',
+        createdAt: user.createdAt || '2024-01-01T00:00:00.000Z',
+        locationId: user.locationId || '1',
+        locationName: user.locationId === '2' ? 'Chavakacheri Campus' : 'Nelliyadi Campus'
+      })),
+      ...ACTIVE_USERS.map(user => ({
+        ...user,
+        locationName: user.locationId === '2' ? 'Chavakacheri Campus' : 'Nelliyadi Campus'
+      }))
+    ];
     
     // Apply filters if provided
     if (params?.role) {
-      filteredUsers = filteredUsers.filter(user => user.role === params.role);
+      allUsers = allUsers.filter(user => user.role === params.role);
     }
     
     if (params?.status) {
-      filteredUsers = filteredUsers.filter(user => user.status === params.status);
+      allUsers = allUsers.filter(user => user.status === params.status);
     }
     
     if (params?.location) {
-      filteredUsers = filteredUsers.filter(user => user.locationId === params.location);
+      allUsers = allUsers.filter(user => user.locationId === params.location);
     }
     
     if (params?.search) {
       const searchTerm = params.search.toLowerCase();
-      filteredUsers = filteredUsers.filter(user => 
+      allUsers = allUsers.filter(user => 
         user.firstName.toLowerCase().includes(searchTerm) ||
         user.lastName.toLowerCase().includes(searchTerm) ||
         user.email.toLowerCase().includes(searchTerm)
@@ -215,7 +231,7 @@ export const usersAPI = {
     }
     
     // Remove password from response
-    const usersWithoutPassword = filteredUsers.map(({ password, ...user }) => user);
+    const usersWithoutPassword = allUsers.map(({ password, ...user }) => user);
     
     return {
       status: 'success',
