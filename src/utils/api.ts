@@ -187,6 +187,50 @@ export const authAPI = {
 };
 
 export const usersAPI = {
+  getAll: async (params?: any): Promise<any> => {
+    await mockDelay();
+    
+    let filteredUsers = [...DEMO_USERS, ...ACTIVE_USERS];
+    
+    // Apply filters if provided
+    if (params?.role) {
+      filteredUsers = filteredUsers.filter(user => user.role === params.role);
+    }
+    
+    if (params?.status) {
+      filteredUsers = filteredUsers.filter(user => user.status === params.status);
+    }
+    
+    if (params?.location) {
+      filteredUsers = filteredUsers.filter(user => user.locationId === params.location);
+    }
+    
+    if (params?.search) {
+      const searchTerm = params.search.toLowerCase();
+      filteredUsers = filteredUsers.filter(user => 
+        user.firstName.toLowerCase().includes(searchTerm) ||
+        user.lastName.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Remove password from response
+    const usersWithoutPassword = filteredUsers.map(({ password, ...user }) => user);
+    
+    return {
+      status: 'success',
+      data: {
+        users: usersWithoutPassword,
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalUsers: usersWithoutPassword.length,
+          hasNext: false,
+          hasPrev: false
+        }
+      }
+    };
+  },
   getUsers: async (params?: any): Promise<any> => {
     await mockDelay();
     return {
