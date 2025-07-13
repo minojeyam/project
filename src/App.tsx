@@ -14,6 +14,7 @@ import ComingSoonPage from './components/Pages/ComingSoonPage';
 import BalancePage from './components/Pages/BalancePage';
 import LocationsPage from './components/Pages/LocationsPage';
 import ClassesPage from './components/Pages/ClassesPage';
+import FeesPage from './components/Pages/FeesPage';
 
 const pages = {
   '/dashboard': 'Dashboard',
@@ -76,7 +77,7 @@ const AppContent: React.FC = () => {
       case '/attendance':
         return <ComingSoonPage feature="Attendance Management" description="Track student attendance, mark present/absent, and generate reports." />;
       case '/fees':
-        return <ComingSoonPage feature="Fee Management" description="Manage student fees, track payments, and generate invoices." />;
+        return <FeesPage />;
       case '/materials':
         return <ComingSoonPage feature="Teaching Materials" description="Upload and manage teaching materials, assignments, and resources." />;
       case '/schedule':
