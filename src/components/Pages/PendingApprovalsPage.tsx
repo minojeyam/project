@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserCheck, UserX, User } from 'lucide-react';
 import DataTable from '../Common/DataTable';
+import { authAPI } from '../../utils/api';
 
 const PendingApprovalsPage: React.FC = () => {
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);
