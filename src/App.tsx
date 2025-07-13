@@ -84,12 +84,6 @@ const AppContent: React.FC = () => {
         return <NoticeBoardPage />;
       case '/reports':
         return <ReportsPage />;
-      case '/materials':
-        return <ComingSoonPage feature="Teaching Materials" description="Upload and manage teaching materials, assignments, and resources." />;
-      case '/schedule':
-        return <ComingSoonPage feature="Schedule Management" description="View and manage class schedules, timetables, and events." />;
-      case '/exams':
-        return <ComingSoonPage feature="Exam Management" description="Create exams, record marks, and generate report cards." />;
       case '/import':
         return <ComingSoonPage feature="Bulk Import/Export" description="Import and export data in bulk using CSV files." />;
       case '/settings':
