@@ -41,6 +41,8 @@ const ClassesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [selectedGrade, setSelectedGrade] = useState('all');
   const [formData, setFormData] = useState({
     title: '',
     level: '',
@@ -59,6 +61,9 @@ const ClassesPage: React.FC = () => {
     startDate: '',
     endDate: ''
   });
+
+  // Extract unique grades from classes for filter
+  const uniqueGrades = [...new Set(classes.map(c => c.level))].sort();
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -186,6 +191,13 @@ const ClassesPage: React.FC = () => {
     });
   };
 
+  // Filter classes based on selected location and grade
+  const filteredClasses = classes.filter(classItem => {
+    const locationMatch = selectedLocation === 'all' || classItem.locationId === selectedLocation;
+    const gradeMatch = selectedGrade === 'all' || classItem.level === selectedGrade;
+    return locationMatch && gradeMatch;
+  });
+
   const columns = [
     {
       key: 'title',
@@ -254,7 +266,7 @@ const ClassesPage: React.FC = () => {
             <div className="space-y-1">
               {row.fees.slice(0, 2).map((fee, index) => (
                 <div key={index} className="text-sm">
-                  <span className="font-medium text-gray-900">${fee.amount}</span>
+                  <span className="font-medium text-gray-900">₹{fee.amount}</span>
                   <span className="text-gray-500 ml-1">({fee.frequency})</span>
                 </div>
               ))}
@@ -325,7 +337,67 @@ const ClassesPage: React.FC = () => {
         <div className="flex items-center space-x-3">
           <div className="bg-white px-4 py-2 rounded-lg border border-gray-200">
             <span className="text-sm text-gray-600">Total Classes: </span>
-            <span className="font-semibold text-gray-900">{classes.length}</span>
+            <span className="font-semibold text-gray-900">{filteredClasses.length}</span>
+          </div>
+          <div className="bg-white px-4 py-2 rounded-lg border border-gray-200">
+            <span className="text-sm text-gray-600">Active Classes: </span>
+            <span className="font-semibold text-green-600">
+              {filteredClasses.filter(c => c.status === 'active').length}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">Location:</label>
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="all">All Locations</option>
+              {locations.map(location => (
+                <option key={location.id} value={location.id}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">Grade/Level:</label>
+            <select
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="all">All Grades</option>
+              {uniqueGrades.map(grade => (
+                <option key={grade} value={grade}>
+                  {grade}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex items-center space-x-2 ml-auto">
+            <span className="text-sm text-gray-600">
+              Showing {filteredClasses.length} of {classes.length} classes
+            </span>
+            {(selectedLocation !== 'all' || selectedGrade !== 'all') && (
+              <button
+                onClick={() => {
+                  setSelectedLocation('all');
+                  setSelectedGrade('all');
+                }}
+                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 text-sm"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -343,7 +415,7 @@ const ClassesPage: React.FC = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={classes}
+          data={filteredClasses}
           title="All Classes"
           actions={actions}
         />
@@ -552,7 +624,7 @@ const ClassesPage: React.FC = () => {
                   <div>
                     <input
                       type="text"
-                      placeholder="Fee name"
+                      placeholder="Fee name (e.g., Monthly Tuition)"
                       value={fee.name}
                       onChange={(e) => {
                         const newFees = [...formData.fees];
@@ -563,19 +635,22 @@ const ClassesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <input
-                      type="number"
-                      placeholder="Amount"
-                      min="0"
-                      step="0.01"
-                      value={fee.amount}
-                      onChange={(e) => {
-                        const newFees = [...formData.fees];
-                        newFees[index].amount = parseFloat(e.target.value) || 0;
-                        setFormData({ ...formData, fees: newFees });
-                      }}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-2 top-1 text-sm text-gray-500">₹</span>
+                      <input
+                        type="number"
+                        placeholder="Amount in Rs"
+                        min="0"
+                        step="1"
+                        value={fee.amount}
+                        onChange={(e) => {
+                          const newFees = [...formData.fees];
+                          newFees[index].amount = parseFloat(e.target.value) || 0;
+                          setFormData({ ...formData, fees: newFees });
+                        }}
+                        className="w-full pl-6 pr-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                   <div>
                     <select
