@@ -43,6 +43,13 @@ const ClassesPage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedGrade, setSelectedGrade] = useState('all');
+  const [showClassDetails, setShowClassDetails] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignModalType, setAssignModalType] = useState<'teacher' | 'student'>('teacher');
+  const [availableTeachers, setAvailableTeachers] = useState<any[]>([]);
+  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState('');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     level: '',
@@ -71,6 +78,25 @@ const ClassesPage: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (showAssignModal) {
+      fetchAvailableUsers();
+    }
+  }, [showAssignModal, assignModalType]);
+
+  const fetchAvailableUsers = async () => {
+    try {
+      if (assignModalType === 'teacher') {
+        const response = await usersAPI.getAll({ role: 'teacher', status: 'active' });
+        setAvailableTeachers(response.data.users || []);
+      } else {
+        const response = await usersAPI.getAll({ role: 'student', status: 'active' });
+        setAvailableStudents(response.data.users || []);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch users:', err);
+    }
+  };
   const fetchData = async () => {
     try {
       setLoading(true);
