@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, BookOpen, Users, Clock, MapPin } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, BookOpen, Users, Clock, MapPin, User } from 'lucide-react';
 import DataTable from '../Common/DataTable';
 import Modal from '../Common/Modal';
 import { classesAPI, locationsAPI, usersAPI } from '../../utils/api';

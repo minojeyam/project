@@ -564,6 +564,22 @@ export const classesAPI = {
     };
   },
   
+  assignTeacher: async (classId: string, teacherId: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Teacher assigned successfully'
+    };
+  },
+  
+  removeStudent: async (classId: string, studentId: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Student removed successfully'
+    };
+  },
+  
   getById: (id: string) => apiRequest(`/classes/${id}`),
   
   create: (classData: any) =>
