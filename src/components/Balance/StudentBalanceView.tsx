@@ -171,7 +171,7 @@ const StudentBalanceView: React.FC = () => {
           <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                <span className="font-bold text-lg text-teal-600">Rs 55,000</span>
                 <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
                 <p className="text-sm text-gray-500 mt-1">{stat.subtitle}</p>
               </div>
@@ -344,7 +344,7 @@ const StudentBalanceView: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    Rs {payment.amount.toLocaleString()}
+                    ₹{payment.amount}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(payment.dueDate).toLocaleDateString()}
