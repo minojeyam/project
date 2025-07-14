@@ -636,10 +636,10 @@ const ClassesPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="relative">
-                      <span className="absolute left-2 top-1 text-sm text-gray-500">₹</span>
+                      <span className="absolute left-2 top-1 text-sm text-gray-500">Rs</span>
                       <input
                         type="number"
-                        placeholder="Amount in Rs"
+                        placeholder="Amount in LKR"
                         min="0"
                         step="1"
                         value={fee.amount}
@@ -648,7 +648,7 @@ const ClassesPage: React.FC = () => {
                           newFees[index].amount = parseFloat(e.target.value) || 0;
                           setFormData({ ...formData, fees: newFees });
                         }}
-                        className="w-full pl-6 pr-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-8 pr-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
                   </div>

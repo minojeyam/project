@@ -439,12 +439,12 @@ export const classesAPI = {
         capacity: 30,
         currentEnrollment: 25,
         monthlyFee: {
-          amount: 450,
-          currency: 'USD'
+          amount: 45000,
+          currency: 'LKR'
         },
         fees: [
-          { name: 'Monthly Tuition', amount: 4500, frequency: 'monthly', category: 'tuition' },
-          { name: 'Lab Fee', amount: 750, frequency: 'semester', category: 'lab' }
+          { name: 'Monthly Tuition', amount: 45000, frequency: 'monthly', category: 'tuition' },
+          { name: 'Lab Fee', amount: 7500, frequency: 'semester', category: 'lab' }
         ],
         status: 'active',
         startDate: '2024-01-15T00:00:00.000Z',
@@ -470,12 +470,12 @@ export const classesAPI = {
         capacity: 25,
         currentEnrollment: 22,
         monthlyFee: {
-          amount: 5200,
-          currency: 'INR'
+          amount: 52000,
+          currency: 'LKR'
         },
         fees: [
-          { name: 'Monthly Tuition', amount: 5200, frequency: 'monthly', category: 'tuition' },
-          { name: 'Lab Fee', amount: 1000, frequency: 'semester', category: 'lab' }
+          { name: 'Monthly Tuition', amount: 52000, frequency: 'monthly', category: 'tuition' },
+          { name: 'Lab Fee', amount: 10000, frequency: 'semester', category: 'lab' }
         ],
         status: 'active',
         startDate: '2024-01-15T00:00:00.000Z',
@@ -501,13 +501,13 @@ export const classesAPI = {
         capacity: 20,
         currentEnrollment: 18,
         monthlyFee: {
-          amount: 6000,
-          currency: 'INR'
+          amount: 60000,
+          currency: 'LKR'
         },
         fees: [
-          { name: 'Monthly Tuition', amount: 6000, frequency: 'monthly', category: 'tuition' },
-          { name: 'Lab Fee', amount: 1500, frequency: 'semester', category: 'lab' },
-          { name: 'Equipment Fee', amount: 500, frequency: 'annual', category: 'other' }
+          { name: 'Monthly Tuition', amount: 60000, frequency: 'monthly', category: 'tuition' },
+          { name: 'Lab Fee', amount: 15000, frequency: 'semester', category: 'lab' },
+          { name: 'Equipment Fee', amount: 5000, frequency: 'annual', category: 'other' }
         ],
         status: 'active',
         startDate: '2024-01-15T00:00:00.000Z',
