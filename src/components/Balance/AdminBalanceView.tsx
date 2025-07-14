@@ -203,7 +203,7 @@ const AdminBalanceView: React.FC = () => {
       label: 'Amount',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-red-600">₹{value}</span>
+        <span className="font-medium text-red-600">Rs {value.toLocaleString()}</span>
       )
     },
     {

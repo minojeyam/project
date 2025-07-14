@@ -344,7 +344,7 @@ const StudentBalanceView: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ₹{payment.amount}
+                    Rs {payment.amount.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(payment.dueDate).toLocaleDateString()}

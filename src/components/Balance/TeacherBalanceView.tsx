@@ -156,7 +156,7 @@ const TeacherBalanceView: React.FC = () => {
       label: 'Pending',
       sortable: true,
       render: (value: number) => (
-        <span className="font-medium text-orange-600">₹{value.toLocaleString()}</span>
+        <span className="font-medium text-orange-600">Rs {value.toLocaleString()}</span>
       )
     },
     {
