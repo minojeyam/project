@@ -50,6 +50,9 @@ const ClassesPage: React.FC = () => {
   const [availableStudents, setAvailableStudents] = useState<any[]>([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
+  const [selectedStudentForDetails, setSelectedStudentForDetails] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
     level: '',
@@ -193,6 +196,26 @@ const ClassesPage: React.FC = () => {
     }
   };
 
+  const handleViewStudents = (classItem: Class) => {
+    setSelectedClass(classItem);
+    setShowStudentsModal(true);
+  };
+
+  const handleViewStudentDetails = (student: any) => {
+    setSelectedStudentForDetails(student);
+    setShowStudentDetailsModal(true);
+  };
+
+  const handleCloseStudentsModal = () => {
+    setShowStudentsModal(false);
+    setSelectedClass(null);
+  };
+
+  const handleCloseStudentDetailsModal = () => {
+    setShowStudentDetailsModal(false);
+    setSelectedStudentForDetails(null);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setIsEditMode(false);
@@ -326,6 +349,13 @@ const ClassesPage: React.FC = () => {
       label: 'Actions',
       render: (value: any, row: Class) => (
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handleViewStudents(row)}
+            className="text-purple-600 hover:text-purple-800 transition-colors duration-200"
+            title="View Students"
+          >
+            <Users className="w-4 h-4" />
+          </button>
           <button
             onClick={() => handleEdit(row)}
             className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
@@ -773,6 +803,223 @@ const ClassesPage: React.FC = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* View Students Modal */}
+      <Modal
+        isOpen={showStudentsModal}
+        onClose={handleCloseStudentsModal}
+        title={`Students in ${selectedClass?.title || 'Class'}`}
+        size="lg"
+      >
+        {selectedClass && (
+          <div className="space-y-4">
+            {/* Class Info Header */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-900">{selectedClass.title}</h4>
+                  <p className="text-sm text-gray-600">{selectedClass.subject} • {selectedClass.level}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    {selectedClass.currentEnrollment} / {selectedClass.capacity} Students
+                  </p>
+                  <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full"
+                      style={{ width: `${(selectedClass.currentEnrollment / selectedClass.capacity) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Students List */}
+            {selectedClass.enrolledStudents && selectedClass.enrolledStudents.length > 0 ? (
+              <div className="space-y-3">
+                <h5 className="font-medium text-gray-900">Enrolled Students</h5>
+                <div className="max-h-96 overflow-y-auto">
+                  {selectedClass.enrolledStudents.map((enrollment, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-medium text-sm">
+                            {enrollment.studentName?.split(' ').map(n => n.charAt(0)).join('') || 'S'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{enrollment.studentName || 'Student Name'}</p>
+                          <p className="text-sm text-gray-500">
+                            Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          enrollment.status === 'active' ? 'bg-green-100 text-green-800' :
+                          enrollment.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                          enrollment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {enrollment.status?.charAt(0).toUpperCase() + enrollment.status?.slice(1) || 'Active'}
+                        </span>
+                        <button
+                          onClick={() => handleViewStudentDetails(enrollment)}
+                          className="p-1 text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                          title="View Student Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900">No Students Enrolled</h4>
+                <p className="text-gray-500 mt-1">This class doesn't have any enrolled students yet.</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+              <button
+                onClick={handleCloseStudentsModal}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setAssignModalType('student');
+                  setShowAssignModal(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+              >
+                Add Students
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Student Details Modal */}
+      <Modal
+        isOpen={showStudentDetailsModal}
+        onClose={handleCloseStudentDetailsModal}
+        title="Student Details"
+        size="md"
+      >
+        {selectedStudentForDetails && (
+          <div className="space-y-6">
+            {/* Student Header */}
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl font-medium">
+                  {selectedStudentForDetails.studentName?.split(' ').map(n => n.charAt(0)).join('') || 'S'}
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {selectedStudentForDetails.studentName || 'Student Name'}
+                </h3>
+                <p className="text-gray-600">{selectedStudentForDetails.studentEmail || 'student@example.com'}</p>
+              </div>
+            </div>
+
+            {/* Student Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
+                <p className="text-sm text-gray-900">{selectedStudentForDetails.studentId || 'STU-001'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Enrollment Status</label>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  selectedStudentForDetails.status === 'active' ? 'bg-green-100 text-green-800' :
+                  selectedStudentForDetails.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                  selectedStudentForDetails.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {selectedStudentForDetails.status?.charAt(0).toUpperCase() + selectedStudentForDetails.status?.slice(1) || 'Active'}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Enrollment Date</label>
+                <p className="text-sm text-gray-900">
+                  {new Date(selectedStudentForDetails.enrollmentDate).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <p className="text-sm text-gray-900">{selectedStudentForDetails.phoneNumber || '+94 77 123 4567'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Parent Email</label>
+                <p className="text-sm text-gray-900">{selectedStudentForDetails.parentEmail || 'parent@example.com'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <p className="text-sm text-gray-900">{selectedStudentForDetails.locationName || selectedClass?.locationName || 'N/A'}</p>
+              </div>
+            </div>
+
+            {/* Academic Information */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-3">Academic Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Grade</label>
+                  <p className="text-sm text-gray-900">{selectedClass?.level || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                  <p className="text-sm text-gray-900">{selectedClass?.subject || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Attendance Rate</label>
+                  <p className="text-sm text-gray-900">96.5%</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Grade</label>
+                  <p className="text-sm text-gray-900">A-</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {selectedStudentForDetails.notes && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">
+                  {selectedStudentForDetails.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+              <button
+                onClick={handleCloseStudentDetailsModal}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  // Handle edit student functionality
+                  alert('Edit student functionality would go here');
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+              >
+                Edit Student
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
