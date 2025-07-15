@@ -53,6 +53,9 @@ const ClassesPage: React.FC = () => {
   const [showStudentsModal, setShowStudentsModal] = useState(false);
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
   const [selectedStudentForDetails, setSelectedStudentForDetails] = useState<any>(null);
+  const [showAddStudentsModal, setShowAddStudentsModal] = useState(false);
+  const [unassignedStudents, setUnassignedStudents] = useState<any[]>([]);
+  const [selectedStudentsToAdd, setSelectedStudentsToAdd] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     level: '',
@@ -80,6 +83,42 @@ const ClassesPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (showAddStudentsModal && selectedClass) {
+      fetchUnassignedStudents();
+    }
+  }, [showAddStudentsModal, selectedClass]);
+
+  const fetchUnassignedStudents = async () => {
+    try {
+      // Get all active students
+      const allStudentsResponse = await usersAPI.getAll({ role: 'student', status: 'active' });
+      const allStudents = allStudentsResponse.data.users || [];
+      
+      // Get all classes to find assigned students
+      const allClassesResponse = await classesAPI.getClasses();
+      const allClasses = allClassesResponse.data.classes || [];
+      
+      // Create a set of all assigned student IDs
+      const assignedStudentIds = new Set();
+      allClasses.forEach(classItem => {
+        if (classItem.enrolledStudents) {
+          classItem.enrolledStudents.forEach(enrollment => {
+            assignedStudentIds.add(enrollment.studentId);
+          });
+        }
+      });
+      
+      // Filter out assigned students
+      const unassigned = allStudents.filter(student => !assignedStudentIds.has(student.id));
+      
+      setUnassignedStudents(unassigned);
+    } catch (err: any) {
+      console.error('Failed to fetch unassigned students:', err);
+      setError('Failed to fetch unassigned students');
+    }
+  };
 
   useEffect(() => {
     if (showAssignModal) {
@@ -214,6 +253,45 @@ const ClassesPage: React.FC = () => {
   const handleCloseStudentDetailsModal = () => {
     setShowStudentDetailsModal(false);
     setSelectedStudentForDetails(null);
+  };
+
+  const handleOpenAddStudentsModal = () => {
+    setShowAddStudentsModal(true);
+    setSelectedStudentsToAdd([]);
+  };
+
+  const handleCloseAddStudentsModal = () => {
+    setShowAddStudentsModal(false);
+    setSelectedStudentsToAdd([]);
+    setUnassignedStudents([]);
+  };
+
+  const handleStudentSelection = (studentId: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedStudentsToAdd(prev => [...prev, studentId]);
+    } else {
+      setSelectedStudentsToAdd(prev => prev.filter(id => id !== studentId));
+    }
+  };
+
+  const handleAddSelectedStudents = async () => {
+    if (!selectedClass || selectedStudentsToAdd.length === 0) return;
+    
+    try {
+      // Add each selected student to the class
+      for (const studentId of selectedStudentsToAdd) {
+        await classesAPI.enrollStudent(selectedClass.id, studentId);
+      }
+      
+      // Refresh data and close modal
+      await fetchData();
+      handleCloseAddStudentsModal();
+      
+      // Show success message
+      alert(`Successfully added ${selectedStudentsToAdd.length} student(s) to the class`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to add students to class');
+    }
   };
 
   const handleCloseModal = () => {
@@ -894,8 +972,7 @@ const ClassesPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  setAssignModalType('student');
-                  setShowAssignModal(true);
+                  handleOpenAddStudentsModal();
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
               >
@@ -1016,6 +1093,126 @@ const ClassesPage: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
               >
                 Edit Student
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Add Students Modal */}
+      <Modal
+        isOpen={showAddStudentsModal}
+        onClose={handleCloseAddStudentsModal}
+        title={`Add Students to ${selectedClass?.title || 'Class'}`}
+        size="lg"
+      >
+        {selectedClass && (
+          <div className="space-y-4">
+            {/* Class Info Header */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-900">{selectedClass.title}</h4>
+                  <p className="text-sm text-gray-600">{selectedClass.subject} • {selectedClass.level}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    Available Spots: {selectedClass.capacity - selectedClass.currentEnrollment}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Current: {selectedClass.currentEnrollment} / {selectedClass.capacity}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Selection Summary */}
+            {selectedStudentsToAdd.length > 0 && (
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-sm font-medium text-blue-900">
+                  {selectedStudentsToAdd.length} student(s) selected for enrollment
+                </p>
+              </div>
+            )}
+
+            {/* Unassigned Students List */}
+            {unassignedStudents.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="font-medium text-gray-900">Available Students</h5>
+                  <p className="text-sm text-gray-500">{unassignedStudents.length} students available</p>
+                </div>
+                <div className="max-h-96 overflow-y-auto space-y-2">
+                  {unassignedStudents.map((student) => {
+                    const isSelected = selectedStudentsToAdd.includes(student.id);
+                    return (
+                      <div 
+                        key={student.id} 
+                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 bg-white hover:bg-gray-50'
+                        }`}
+                        onClick={() => handleStudentSelection(student.id, !isSelected)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => handleStudentSelection(student.id, e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">
+                              {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {student.firstName} {student.lastName}
+                            </p>
+                            <p className="text-sm text-gray-500">{student.email}</p>
+                            {student.phoneNumber && (
+                              <p className="text-xs text-gray-500">{student.phoneNumber}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                            Available
+                          </span>
+                          {student.locationName && (
+                            <p className="text-xs text-gray-500 mt-1">{student.locationName}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900">No Available Students</h4>
+                <p className="text-gray-500 mt-1">All students are already assigned to classes.</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+              <button
+                onClick={handleCloseAddStudentsModal}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddSelectedStudents}
+                disabled={selectedStudentsToAdd.length === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add {selectedStudentsToAdd.length > 0 ? `${selectedStudentsToAdd.length} ` : ''}Student{selectedStudentsToAdd.length !== 1 ? 's' : ''}
               </button>
             </div>
           </div>
