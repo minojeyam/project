@@ -230,6 +230,75 @@ export const usersAPI = {
       );
     }
     
+    // Add more sample students for testing unassigned functionality
+    const additionalStudents = [
+      {
+        id: '5',
+        firstName: 'Alice',
+        lastName: 'Johnson',
+        email: 'alice.johnson@student.com',
+        role: 'student',
+        status: 'active',
+        phoneNumber: '+94 77 234 5678',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        createdAt: '2024-01-15T00:00:00.000Z'
+      },
+      {
+        id: '6',
+        firstName: 'Bob',
+        lastName: 'Smith',
+        email: 'bob.smith@student.com',
+        role: 'student',
+        status: 'active',
+        phoneNumber: '+94 77 345 6789',
+        locationId: '2',
+        locationName: 'Chavakacheri Campus',
+        createdAt: '2024-01-16T00:00:00.000Z'
+      },
+      {
+        id: '7',
+        firstName: 'Carol',
+        lastName: 'Davis',
+        email: 'carol.davis@student.com',
+        role: 'student',
+        status: 'active',
+        phoneNumber: '+94 77 456 7890',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        createdAt: '2024-01-17T00:00:00.000Z'
+      },
+      {
+        id: '8',
+        firstName: 'David',
+        lastName: 'Wilson',
+        email: 'david.wilson@student.com',
+        role: 'student',
+        status: 'active',
+        phoneNumber: '+94 77 567 8901',
+        locationId: '2',
+        locationName: 'Chavakacheri Campus',
+        createdAt: '2024-01-18T00:00:00.000Z'
+      },
+      {
+        id: '9',
+        firstName: 'Emma',
+        lastName: 'Brown',
+        email: 'emma.brown@student.com',
+        role: 'student',
+        status: 'active',
+        phoneNumber: '+94 77 678 9012',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        createdAt: '2024-01-19T00:00:00.000Z'
+      }
+    ];
+    
+    // Add additional students if role filter is student or no role filter
+    if (!params?.role || params.role === 'student') {
+      allUsers = [...allUsers, ...additionalStudents];
+    }
+    
     // Remove password from response
     const usersWithoutPassword = allUsers.map(({ password, ...user }) => user);
     
