@@ -632,6 +632,14 @@ export const classesAPI = {
       message: 'Student enrolled successfully'
     };
   },
+
+  enrollStudent: async (classId: string, studentId: string, token?: string): Promise<any> => {
+    await mockDelay();
+    return {
+      status: 'success',
+      message: 'Student enrolled successfully'
+    };
+  },
   
   assignTeacher: async (classId: string, teacherId: string): Promise<any> => {
     await mockDelay();
