@@ -3,7 +3,6 @@ import { Plus, Edit, Trash2, BookOpen, Users, Eye, UserPlus } from "lucide-react
 import DataTable from "../Common/DataTable";
 import Modal from "../Common/Modal";
 import { classesAPI, locationsAPI, usersAPI } from "../../utils/api";
-import AssignStudentsModal from "../Classes/AssignStudentsModal";
 
 export type Frequency = "monthly" | "semester" | "annual" | "one-time";
 
