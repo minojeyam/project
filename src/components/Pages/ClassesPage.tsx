@@ -733,6 +733,13 @@ const ClassesPage: React.FC = () => {
             title="All Classes"
             actions={actions}
           />
+          {showAssignModal && selectedClassId && (
+            <AssignStudentsModal
+              classId={selectedClassId}
+              token={localStorage.getItem("accessToken") || ""}
+              onClose={() => setShowAssignModal(false)}
+            />
+          )}
         </>
       )}
 
@@ -1474,6 +1481,349 @@ const ClassesPage: React.FC = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Students List Modal */}
+      <Modal
+        isOpen={isStudentsModalOpen}
+        onClose={() => {
+          setIsStudentsModalOpen(false);
+          setSelectedClass(null);
+          setClassStudents([]);
+        }}
+        title={`Students in ${selectedClass?.title || 'Class'}`}
+        size="xl"
+      >
+        {selectedClass && (
+          <div className="space-y-6">
+            {/* Class Info Header */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-gray-900">{selectedClass.title}</h3>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  selectedClass.status === 'active' ? 'bg-green-100 text-green-800' :
+                  selectedClass.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                  selectedClass.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {selectedClass.status.charAt(0).toUpperCase() + selectedClass.status.slice(1)}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Subject:</span>
+                  <p className="font-medium">{selectedClass.subject}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Level:</span>
+                  <p className="font-medium">{selectedClass.level}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Schedule:</span>
+                  <p className="font-medium">
+                    {dayNames[selectedClass.schedule.dayOfWeek]} {selectedClass.schedule.startTime}-{selectedClass.schedule.endTime}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Enrollment:</span>
+                  <p className="font-medium">{selectedClass.currentEnrollment}/{selectedClass.capacity}</p>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-gray-600">Class Capacity</span>
+                  <span className="font-medium">
+                    {Math.round((selectedClass.currentEnrollment / selectedClass.capacity) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full"
+                    style={{ width: `${(selectedClass.currentEnrollment / selectedClass.capacity) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Students List */}
+            {studentsLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : classStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900">No Students Enrolled</h3>
+                <p className="text-gray-500 mt-1">This class doesn't have any students enrolled yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {classStudents.map((student, index) => (
+                  <div key={student.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium text-sm">
+                          {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {student.firstName} {student.lastName}
+                        </h4>
+                        <p className="text-sm text-gray-500">{student.email}</p>
+                        <div className="flex items-center space-x-4 mt-1">
+                          <span className="text-xs text-gray-500">
+                            Enrolled: {student.enrollmentDate ? new Date(student.enrollmentDate).toLocaleDateString() : 'N/A'}
+                          </span>
+                          {student.attendanceRate && (
+                            <span className="text-xs text-gray-500">
+                              Attendance: {student.attendanceRate}%
+                            </span>
+                          )}
+                          {student.lastGrade && (
+                            <span className="text-xs text-gray-500">
+                              Grade: {student.lastGrade}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEnrollmentStatusColor(student.enrollmentStatus || 'active')}`}>
+                        {(student.enrollmentStatus || 'active').charAt(0).toUpperCase() + (student.enrollmentStatus || 'active').slice(1)}
+                      </span>
+                      <button
+                        onClick={() => handleViewStudentDetails(student)}
+                        className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Student Details Modal */}
+      <Modal
+        isOpen={isStudentDetailModalOpen}
+        onClose={() => {
+          setIsStudentDetailModalOpen(false);
+          setSelectedStudent(null);
+        }}
+        title="Student Details"
+        size="lg"
+      >
+        {selectedStudent && (
+          <div className="space-y-6">
+            {/* Student Header */}
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl font-medium">
+                  {selectedStudent.firstName.charAt(0)}{selectedStudent.lastName.charAt(0)}
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {selectedStudent.firstName} {selectedStudent.lastName}
+                </h3>
+                <p className="text-gray-600">{selectedStudent.email}</p>
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getEnrollmentStatusColor(selectedStudent.status)}`}>
+                  {selectedStudent.status.charAt(0).toUpperCase() + selectedStudent.status.slice(1)}
+                </span>
+              </div>
+            </div>
+
+            {/* Student Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900">Personal Information</h4>
+                
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium text-gray-900">{selectedStudent.email}</p>
+                  </div>
+                  
+                  {selectedStudent.phoneNumber && (
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium text-gray-900">{selectedStudent.phoneNumber}</p>
+                    </div>
+                  )}
+                  
+                  {selectedStudent.parentEmail && (
+                    <div>
+                      <p className="text-sm text-gray-600">Parent Email</p>
+                      <p className="font-medium text-gray-900">{selectedStudent.parentEmail}</p>
+                    </div>
+                  )}
+                  
+                  {selectedStudent.locationName && (
+                    <div>
+                      <p className="text-sm text-gray-600">Location</p>
+                      <p className="font-medium text-gray-900">{selectedStudent.locationName}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Academic Information */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900">Academic Information</h4>
+                
+                <div className="space-y-3">
+                  {selectedStudent.enrollmentDate && (
+                    <div>
+                      <p className="text-sm text-gray-600">Enrollment Date</p>
+                      <p className="font-medium text-gray-900">
+                        {new Date(selectedStudent.enrollmentDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedStudent.attendanceRate && (
+                    <div>
+                      <p className="text-sm text-gray-600">Attendance Rate</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium text-gray-900">{selectedStudent.attendanceRate}%</p>
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              selectedStudent.attendanceRate >= 90 ? 'bg-green-500' :
+                              selectedStudent.attendanceRate >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${selectedStudent.attendanceRate}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedStudent.lastGrade && (
+                    <div>
+                      <p className="text-sm text-gray-600">Last Grade</p>
+                      <p className="font-medium text-gray-900">{selectedStudent.lastGrade}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-sm text-gray-600">Joined</p>
+                    <p className="font-medium text-gray-900">
+                      {new Date(selectedStudent.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Assign Students Modal */}
+      <Modal
+        isOpen={isAssignModalOpen}
+        onClose={() => {
+          setIsAssignModalOpen(false);
+          setSelectedClass(null);
+          setAvailableStudents([]);
+          setSelectedStudentsToAssign([]);
+        }}
+        title={`Assign Students to ${selectedClass?.title || 'Class'}`}
+        size="lg"
+      >
+        {selectedClass && (
+          <div className="space-y-6">
+            {/* Class Info */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">{selectedClass.title}</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Current Enrollment:</span>
+                  <span className="font-medium ml-2">{selectedClass.currentEnrollment}/{selectedClass.capacity}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Available Spots:</span>
+                  <span className="font-medium ml-2">{selectedClass.capacity - selectedClass.currentEnrollment}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Available Students */}
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Available Students</h4>
+              {availableStudents.length === 0 ? (
+                <div className="text-center py-8">
+                  <UserPlus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900">No Available Students</h3>
+                  <p className="text-gray-500 mt-1">All students are already assigned to classes</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {availableStudents.map((student) => (
+                    <label key={student.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudentsToAssign.includes(student.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedStudentsToAssign([...selectedStudentsToAssign, student.id]);
+                          } else {
+                            setSelectedStudentsToAssign(selectedStudentsToAssign.filter(id => id !== student.id));
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium text-sm">
+                          {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{student.firstName} {student.lastName}</p>
+                        <p className="text-sm text-gray-500">{student.email}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-4 border-t">
+              <div className="text-sm text-gray-600">
+                {selectedStudentsToAssign.length} student(s) selected
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => {
+                    setIsAssignModalOpen(false);
+                    setSelectedClass(null);
+                    setAvailableStudents([]);
+                    setSelectedStudentsToAssign([]);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignStudents}
+                  disabled={selectedStudentsToAssign.length === 0}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Assign Students ({selectedStudentsToAssign.length})
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
