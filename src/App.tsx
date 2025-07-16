@@ -18,6 +18,7 @@ import TeacherClassesPage from './components/Pages/TeacherClassesPage';
 import FeesPage from './components/Pages/FeesPage';
 import NoticeBoardPage from './components/Pages/NoticeBoardPage';
 import ReportsPage from './components/Pages/ReportsPage';
+import AttendancePage from './components/Pages/AttendancePage';
 
 const pages = {
   '/dashboard': 'Dashboard',
@@ -78,7 +79,7 @@ const AppContent: React.FC = () => {
       case '/classes':
         return user.role === 'admin' ? <ClassesPage /> : <TeacherClassesPage />;
       case '/attendance':
-        return <ComingSoonPage feature="Attendance Management" description="Track student attendance, mark present/absent, and generate reports." />;
+        return <AttendancePage />;
       case '/fees':
         return <FeesPage />;
       case '/notices':
