@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, BookOpen, Users, Eye, UserPlus, X } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, Users, Eye, UserPlus } from "lucide-react";
 import DataTable from "../Common/DataTable";
 import Modal from "../Common/Modal";
 import { classesAPI, locationsAPI, usersAPI } from "../../utils/api";
 import AssignStudentsModal from "../Classes/AssignStudentsModal";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export type Frequency = "monthly" | "semester" | "annual" | "one-time";
 
@@ -80,6 +78,14 @@ const ClassesPage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [selectedGrade, setSelectedGrade] = useState("all");
+  const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
+  const [isStudentDetailModalOpen, setIsStudentDetailModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [classStudents, setClassStudents] = useState<any[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
+  const [selectedStudentsToAssign, setSelectedStudentsToAssign] = useState<string[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
   
   // New state for student modals
   const [showStudentsModal, setShowStudentsModal] = useState(false);
@@ -152,13 +158,6 @@ const ClassesPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
-  const [showAssignModal, setShowAssignModal] = useState(false);
-
-  const handleOpenAssignModal = (classId: string) => {
-    setSelectedClassId(classId);
-    setShowAssignModal(true);
-  };
 
   // New functions for student management
   const handleViewStudents = (classItem: Class) => {
