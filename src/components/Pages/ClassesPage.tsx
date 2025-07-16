@@ -733,13 +733,6 @@ const ClassesPage: React.FC = () => {
             title="All Classes"
             actions={actions}
           />
-          {showAssignModal && selectedClassId && (
-            <AssignStudentsModal
-              classId={selectedClassId}
-              token={localStorage.getItem("accessToken") || ""}
-              onClose={() => setShowAssignModal(false)}
-            />
-          )}
         </>
       )}
 
