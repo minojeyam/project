@@ -597,9 +597,79 @@ export const classesAPI = {
   },
   getClassById: async (id: string): Promise<any> => {
     await mockDelay();
+    
+    // Find the class by ID
+    const mockClasses = [
+      {
+        _id: '1',
+        title: 'Advanced Mathematics',
+        level: 'Grade 10',
+        subject: 'Mathematics',
+        description: 'Advanced mathematical concepts including algebra and geometry',
+        locationId: { _id: '1', name: 'Nelliyadi Campus' },
+        teacherId: { _id: '2', firstName: 'Teacher', lastName: 'User', email: 'teacher@iospace.com' },
+        schedule: { dayOfWeek: 1, startTime: '09:00', endTime: '10:30', duration: 90 },
+        capacity: 30,
+        currentEnrollment: 25,
+        monthlyFee: { amount: 45000, currency: 'LKR' },
+        status: 'active',
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2024-12-15T00:00:00.000Z',
+        enrolledStudents: [
+          { studentId: '5', enrollmentDate: '2024-01-15T00:00:00.000Z', status: 'active' },
+          { studentId: '6', enrollmentDate: '2024-01-16T00:00:00.000Z', status: 'active' },
+          { studentId: '7', enrollmentDate: '2024-01-17T00:00:00.000Z', status: 'active' },
+          { studentId: '8', enrollmentDate: '2024-01-18T00:00:00.000Z', status: 'active' },
+          { studentId: '9', enrollmentDate: '2024-01-19T00:00:00.000Z', status: 'active' }
+        ]
+      },
+      {
+        _id: '2',
+        title: 'Physics Fundamentals',
+        level: 'Grade 9',
+        subject: 'Physics',
+        description: 'Introduction to physics concepts and laboratory work',
+        locationId: { _id: '2', name: 'Chavakacheri Campus' },
+        teacherId: { _id: '2', firstName: 'Teacher', lastName: 'User', email: 'teacher@iospace.com' },
+        schedule: { dayOfWeek: 2, startTime: '11:00', endTime: '12:30', duration: 90 },
+        capacity: 25,
+        currentEnrollment: 22,
+        monthlyFee: { amount: 52000, currency: 'LKR' },
+        status: 'active',
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2024-12-15T00:00:00.000Z',
+        enrolledStudents: [
+          { studentId: '6', enrollmentDate: '2024-01-16T00:00:00.000Z', status: 'active' },
+          { studentId: '8', enrollmentDate: '2024-01-18T00:00:00.000Z', status: 'active' }
+        ]
+      },
+      {
+        _id: '3',
+        title: 'Chemistry Lab',
+        level: 'Grade 11',
+        subject: 'Chemistry',
+        description: 'Hands-on chemistry experiments and theory',
+        locationId: { _id: '1', name: 'Nelliyadi Campus' },
+        teacherId: { _id: '2', firstName: 'Teacher', lastName: 'User', email: 'teacher@iospace.com' },
+        schedule: { dayOfWeek: 3, startTime: '14:00', endTime: '15:30', duration: 90 },
+        capacity: 20,
+        currentEnrollment: 18,
+        monthlyFee: { amount: 60000, currency: 'LKR' },
+        status: 'active',
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2024-12-15T00:00:00.000Z',
+        enrolledStudents: [
+          { studentId: '7', enrollmentDate: '2024-01-17T00:00:00.000Z', status: 'active' },
+          { studentId: '9', enrollmentDate: '2024-01-19T00:00:00.000Z', status: 'active' }
+        ]
+      }
+    ];
+    
+    const foundClass = mockClasses.find(c => c._id === id);
+    
     return {
       status: 'success',
-      data: { class: null }
+      data: { class: foundClass || null }
     };
   },
   createClass: async (classData: any): Promise<any> => {

@@ -14,6 +14,7 @@ import ComingSoonPage from './components/Pages/ComingSoonPage';
 import BalancePage from './components/Pages/BalancePage';
 import LocationsPage from './components/Pages/LocationsPage';
 import ClassesPage from './components/Pages/ClassesPage';
+import TeacherClassesPage from './components/Pages/TeacherClassesPage';
 import FeesPage from './components/Pages/FeesPage';
 import NoticeBoardPage from './components/Pages/NoticeBoardPage';
 import ReportsPage from './components/Pages/ReportsPage';
@@ -75,7 +76,7 @@ const AppContent: React.FC = () => {
       case '/locations':
         return <LocationsPage />;
       case '/classes':
-        return <ClassesPage />;
+        return user.role === 'admin' ? <ClassesPage /> : <TeacherClassesPage />;
       case '/attendance':
         return <ComingSoonPage feature="Attendance Management" description="Track student attendance, mark present/absent, and generate reports." />;
       case '/fees':
