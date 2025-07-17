@@ -7,6 +7,7 @@ import {
   BookOpen, 
   CreditCard, 
   DollarSign,
+  FileText,
   MessageSquare, 
   BarChart3,
   Settings,
@@ -70,6 +71,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <DollarSign className="w-5 h-5" />,
     label: 'Balance & Payments',
     href: '/balance',
+    roles: ['admin', 'teacher', 'student', 'parent'],
+  },
+  {
+    icon: <FileText className="w-5 h-5" />,
+    label: 'Learning Materials',
+    href: '/materials',
     roles: ['admin', 'teacher', 'student', 'parent'],
   },
   {
