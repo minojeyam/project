@@ -8,6 +8,7 @@ import {
   CreditCard, 
   DollarSign,
   FileText,
+  Calendar,
   MessageSquare, 
   BarChart3,
   Settings,
@@ -71,6 +72,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <DollarSign className="w-5 h-5" />,
     label: 'Balance & Payments',
     href: '/balance',
+    roles: ['admin', 'teacher', 'student', 'parent'],
+  },
+  {
+    icon: <Calendar className="w-5 h-5" />,
+    label: 'Calendar',
+    href: '/schedule',
     roles: ['admin', 'teacher', 'student', 'parent'],
   },
   {

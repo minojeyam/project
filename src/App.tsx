@@ -20,6 +20,7 @@ import NoticeBoardPage from './components/Pages/NoticeBoardPage';
 import ReportsPage from './components/Pages/ReportsPage';
 import AttendancePage from './components/Pages/AttendancePage';
 import MaterialsPage from './components/Pages/MaterialsPage';
+import CalendarPage from './components/Pages/CalendarPage';
 
 const pages = {
   '/dashboard': 'Dashboard',
@@ -30,7 +31,7 @@ const pages = {
   '/fees': 'Fees',
   '/balance': 'Balance & Payments',
   '/materials': 'Learning Materials',
-  '/schedule': 'Schedule',
+  '/schedule': 'Calendar',
   '/exams': 'Exams',
   '/notices': 'Notice Board',
   '/approvals': 'Pending Approvals',
@@ -89,6 +90,8 @@ const AppContent: React.FC = () => {
         return <ReportsPage />;
       case '/materials':
         return <MaterialsPage />;
+      case '/schedule':
+        return <CalendarPage />;
       case '/import':
         return <ComingSoonPage feature="Bulk Import/Export" description="Import and export data in bulk using CSV files." />;
       case '/settings':
