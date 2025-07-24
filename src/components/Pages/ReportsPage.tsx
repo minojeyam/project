@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Filter, Calendar, TrendingUp, Users, DollarSign, BookOpen, BarChart3, PieChart, FileText, Eye, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Filter, Calendar, TrendingUp, Users, DollarSign, BookOpen, BarChart3, PieChart, FileText, Eye, RefreshCw, ChevronDown, ChevronUp, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { classesAPI, usersAPI, locationsAPI } from '../../utils/api';
 
@@ -328,6 +328,12 @@ const ReportsPage: React.FC = () => {
         return renderFeeCollectionReport();
       case 'enrollment':
         return renderEnrollmentReport();
+      case 'revenue-summary':
+        return renderRevenueSummaryReport();
+      case 'user-registration':
+        return renderUserRegistrationReport();
+      case 'schedule-summary':
+        return renderScheduleSummaryReport();
       default:
         return <div>Report data will be displayed here</div>;
     }
@@ -826,24 +832,548 @@ const ReportsPage: React.FC = () => {
     </div>
   );
 
-  // Get available reports based on user role
-  const getAvailableReports = () => {
-    const baseReports = [
-      { id: 'class-overview', name: 'Class Overview Report', icon: BookOpen },
-      { id: 'attendance', name: 'Attendance Report', icon: Users },
-      { id: 'fee-collection', name: 'Fee Collection Report', icon: DollarSign }
+  const renderRevenueSummaryReport = () => {
+    // Mock revenue summary data
+    const revenueSummaryData = user?.role === 'admin' ? [
+      {
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        currentMonth: 702000,
+        lastMonth: 685000,
+        currentQuarter: 2106000,
+        lastQuarter: 1998000,
+        receivedCurrent: 658800,
+        pendingCurrent: 43200,
+        classes: [
+          { className: 'Advanced Mathematics', revenue: 112500, received: 108000, pending: 4500 },
+          { className: 'Chemistry Lab', revenue: 108000, received: 102000, pending: 6000 }
+        ]
+      },
+      {
+        locationId: '2',
+        locationName: 'Chavakacheri Campus',
+        currentMonth: 558000,
+        lastMonth: 542000,
+        currentQuarter: 1674000,
+        lastQuarter: 1598000,
+        receivedCurrent: 520200,
+        pendingCurrent: 37800,
+        classes: [
+          { className: 'Physics Fundamentals', revenue: 114400, received: 109200, pending: 5200 }
+        ]
+      }
+    ] : [
+      {
+        classId: '1',
+        className: 'Advanced Mathematics',
+        currentMonth: 112500,
+        lastMonth: 108000,
+        currentQuarter: 337500,
+        lastQuarter: 324000,
+        receivedCurrent: 108000,
+        pendingCurrent: 4500,
+        studentCount: 25
+      },
+      {
+        classId: '2',
+        className: 'Physics Fundamentals',
+        currentMonth: 114400,
+        lastMonth: 109200,
+        currentQuarter: 343200,
+        lastQuarter: 327600,
+        receivedCurrent: 109200,
+        pendingCurrent: 5200,
+        studentCount: 22
+      }
     ];
 
+    return (
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-green-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Current Month</p>
+                <p className="text-2xl font-bold text-green-900">
+                  ₹{user?.role === 'admin' 
+                    ? revenueSummaryData.reduce((sum: number, item: any) => sum + item.currentMonth, 0).toLocaleString()
+                    : revenueSummaryData.reduce((sum: number, item: any) => sum + item.currentMonth, 0).toLocaleString()
+                  }
+                </p>
+              </div>
+              <DollarSign className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-blue-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Last Month</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  ₹{user?.role === 'admin' 
+                    ? revenueSummaryData.reduce((sum: number, item: any) => sum + item.lastMonth, 0).toLocaleString()
+                    : revenueSummaryData.reduce((sum: number, item: any) => sum + item.lastMonth, 0).toLocaleString()
+                  }
+                </p>
+              </div>
+              <Calendar className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-purple-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">Current Quarter</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  ₹{user?.role === 'admin' 
+                    ? revenueSummaryData.reduce((sum: number, item: any) => sum + item.currentQuarter, 0).toLocaleString()
+                    : revenueSummaryData.reduce((sum: number, item: any) => sum + item.currentQuarter, 0).toLocaleString()
+                  }
+                </p>
+              </div>
+              <BarChart3 className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+          <div className="bg-orange-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">Collection Rate</p>
+                <p className="text-2xl font-bold text-orange-900">
+                  {user?.role === 'admin' 
+                    ? Math.round((revenueSummaryData.reduce((sum: number, item: any) => sum + item.receivedCurrent, 0) / 
+                        revenueSummaryData.reduce((sum: number, item: any) => sum + item.currentMonth, 0)) * 100)
+                    : Math.round((revenueSummaryData.reduce((sum: number, item: any) => sum + item.receivedCurrent, 0) / 
+                        revenueSummaryData.reduce((sum: number, item: any) => sum + item.currentMonth, 0)) * 100)
+                  }%
+                </p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-orange-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Revenue Table */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {user?.role === 'admin' ? 'Location-wise Revenue Summary' : 'Class-wise Revenue Summary'}
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {user?.role === 'admin' ? 'Location' : 'Class'}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Month</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Month</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Quarter</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Received</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collection Rate</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {revenueSummaryData.map((item: any, index: number) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {user?.role === 'admin' ? item.locationName : item.className}
+                        </p>
+                        {user?.role === 'teacher' && (
+                          <p className="text-sm text-gray-500">{item.studentCount} students</p>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      ₹{item.currentMonth.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ₹{item.lastMonth.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ₹{item.currentQuarter.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                      ₹{item.receivedCurrent.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600">
+                      ₹{item.pendingCurrent.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{ width: `${(item.receivedCurrent / item.currentMonth) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {Math.round((item.receivedCurrent / item.currentMonth) * 100)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderUserRegistrationReport = () => {
+    // Mock user registration data
+    const userRegistrationData = [
+      {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@email.com',
+        role: 'teacher',
+        status: 'active',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        registrationDate: '2024-01-15',
+        approvalDate: '2024-01-16',
+        lastLogin: '2024-03-15',
+        classesAssigned: 3
+      },
+      {
+        id: '2',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane.smith@email.com',
+        role: 'student',
+        status: 'active',
+        locationId: '2',
+        locationName: 'Chavakacheri Campus',
+        registrationDate: '2024-02-01',
+        approvalDate: '2024-02-02',
+        lastLogin: '2024-03-14',
+        classesEnrolled: 4
+      },
+      {
+        id: '3',
+        firstName: 'Mike',
+        lastName: 'Johnson',
+        email: 'mike.johnson@email.com',
+        role: 'parent',
+        status: 'inactive',
+        locationId: '1',
+        locationName: 'Nelliyadi Campus',
+        registrationDate: '2024-02-15',
+        approvalDate: '2024-02-16',
+        lastLogin: '2024-02-20',
+        childrenCount: 2
+      },
+      {
+        id: '4',
+        firstName: 'Sarah',
+        lastName: 'Wilson',
+        email: 'sarah.wilson@email.com',
+        role: 'teacher',
+        status: 'pending',
+        locationId: '2',
+        locationName: 'Chavakacheri Campus',
+        registrationDate: '2024-03-10',
+        approvalDate: null,
+        lastLogin: null,
+        classesAssigned: 0
+      }
+    ];
+
+    // Apply filters
+    const filteredData = userRegistrationData.filter(user => {
+      const roleMatch = filters.role === 'all' || user.role === filters.role;
+      const statusMatch = filters.status === 'all' || user.status === filters.status;
+      const locationMatch = filters.locationId === 'all' || user.locationId === filters.locationId;
+      return roleMatch && statusMatch && locationMatch;
+    });
+
+    return (
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-blue-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Total Users</p>
+                <p className="text-2xl font-bold text-blue-900">{filteredData.length}</p>
+              </div>
+              <Users className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-green-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Active Users</p>
+                <p className="text-2xl font-bold text-green-900">
+                  {filteredData.filter(u => u.status === 'active').length}
+                </p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-orange-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">Pending Approval</p>
+                <p className="text-2xl font-bold text-orange-900">
+                  {filteredData.filter(u => u.status === 'pending').length}
+                </p>
+              </div>
+              <Clock className="w-8 h-8 text-orange-500" />
+            </div>
+          </div>
+          <div className="bg-purple-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">This Month</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {filteredData.filter(u => 
+                    new Date(u.registrationDate).getMonth() === new Date().getMonth()
+                  ).length}
+                </p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* User Registration Table */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">User Registration Details</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredData.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
+                        user.role === 'student' ? 'bg-green-100 text-green-800' :
+                        'bg-orange-100 text-orange-800'
+                      }`}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.status === 'active' ? 'bg-green-100 text-green-800' :
+                        user.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {user.locationName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(user.registrationDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {user.role === 'teacher' && `${user.classesAssigned} classes`}
+                      {user.role === 'student' && `${user.classesEnrolled} classes`}
+                      {user.role === 'parent' && `${user.childrenCount} children`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderScheduleSummaryReport = () => {
+    // Mock schedule summary data for teachers
+    const scheduleSummaryData = [
+      {
+        classId: '1',
+        className: 'Advanced Mathematics',
+        totalScheduled: 20,
+        completed: 18,
+        cancelled: 1,
+        upcoming: 1,
+        attendanceRate: 94.5,
+        avgStudentsPresent: 23.6
+      },
+      {
+        classId: '2',
+        className: 'Physics Fundamentals',
+        totalScheduled: 18,
+        completed: 16,
+        cancelled: 0,
+        upcoming: 2,
+        attendanceRate: 96.2,
+        avgStudentsPresent: 21.2
+      }
+    ];
+
+    return (
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-blue-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Total Scheduled</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {scheduleSummaryData.reduce((sum, item) => sum + item.totalScheduled, 0)}
+                </p>
+              </div>
+              <Calendar className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-green-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Completed</p>
+                <p className="text-2xl font-bold text-green-900">
+                  {scheduleSummaryData.reduce((sum, item) => sum + item.completed, 0)}
+                </p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-red-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-600 text-sm font-medium">Cancelled</p>
+                <p className="text-2xl font-bold text-red-900">
+                  {scheduleSummaryData.reduce((sum, item) => sum + item.cancelled, 0)}
+                </p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+          </div>
+          <div className="bg-purple-50 p-6 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">Avg Attendance</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {Math.round(scheduleSummaryData.reduce((sum, item) => sum + item.attendanceRate, 0) / scheduleSummaryData.length)}%
+                </p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Schedule Summary Table */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Monthly Class Schedule Summary</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Scheduled</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cancelled</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upcoming</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance Rate</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Students Present</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {scheduleSummaryData.map((schedule) => (
+                  <tr key={schedule.classId} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="font-medium text-gray-900">{schedule.className}</p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {schedule.totalScheduled}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                      {schedule.completed}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                      {schedule.cancelled}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                      {schedule.upcoming}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{ width: `${schedule.attendanceRate}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">{schedule.attendanceRate}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {schedule.avgStudentsPresent}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Get available reports based on user role
+  const getAvailableReports = () => {
     if (user?.role === 'admin') {
       return [
-        ...baseReports,
+        { id: 'class-overview', name: 'Class Overview Report', icon: BookOpen },
+        { id: 'attendance', name: 'Attendance Report', icon: Users },
+        { id: 'fee-collection', name: 'Fee Collection Report', icon: DollarSign },
         { id: 'enrollment', name: 'Student Enrollment Report', icon: TrendingUp },
         { id: 'revenue-summary', name: 'Revenue Summary Report', icon: BarChart3 },
         { id: 'user-registration', name: 'User Registration & Approval Report', icon: FileText }
       ];
+    } else if (user?.role === 'teacher') {
+      return [
+        { id: 'class-overview', name: 'Class Overview Report', icon: BookOpen },
+        { id: 'attendance', name: 'Attendance Report - Per Student', icon: Users },
+        { id: 'fee-collection', name: 'Fee Collection Report - Student Wise', icon: DollarSign },
+        { id: 'revenue-summary', name: 'Class-wise Revenue Summary', icon: BarChart3 },
+        { id: 'schedule-summary', name: 'Monthly Class Schedule Summary', icon: Calendar }
+      ];
     }
 
-    return baseReports;
+    return [
+      { id: 'class-overview', name: 'Class Overview Report', icon: BookOpen },
+      { id: 'attendance', name: 'Attendance Report', icon: Users },
+      { id: 'fee-collection', name: 'Fee Collection Report', icon: DollarSign }
+    ];
   };
 
   const availableReports = getAvailableReports();
@@ -983,6 +1513,39 @@ const ReportsPage: React.FC = () => {
                   </select>
                 </div>
 
+                {selectedReport === 'user-registration' && user?.role === 'admin' && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
+                      <select
+                        value={filters.role || 'all'}
+                        onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="all">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                        <option value="parent">Parent</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        value={filters.userStatus || 'all'}
+                        onChange={(e) => setFilters({ ...filters, userStatus: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
                 {selectedReport === 'fee-collection' && (
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Payment Status</label>
@@ -1040,6 +1603,15 @@ const ReportsPage: React.FC = () => {
                         break;
                       case 'enrollment':
                         exportReport(enrollmentData, 'enrollment-report');
+                        break;
+                      case 'revenue-summary':
+                        exportReport([], 'revenue-summary');
+                        break;
+                      case 'user-registration':
+                        exportReport([], 'user-registration-report');
+                        break;
+                      case 'schedule-summary':
+                        exportReport([], 'schedule-summary');
                         break;
                     }
                   }}
